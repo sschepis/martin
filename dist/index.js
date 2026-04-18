@@ -20,6 +20,7 @@ const llm_1 = require("./llm");
 const runway_gen3_1 = require("./adapters/runway-gen3");
 const luma_1 = require("./adapters/luma");
 const sora_1 = require("./adapters/sora");
+const weryai_1 = require("./adapters/weryai");
 __exportStar(require("./types"), exports);
 class Martin {
     config;
@@ -33,6 +34,7 @@ class Martin {
         this.registerAdapter(new runway_gen3_1.RunwayGen3Adapter());
         this.registerAdapter(new luma_1.LumaDreamMachineAdapter());
         this.registerAdapter(new sora_1.SoraAdapter());
+        this.registerAdapter(new weryai_1.WeryAIAdapter());
     }
     /**
      * Registers a new video generation adapter.

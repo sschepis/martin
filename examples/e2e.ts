@@ -60,6 +60,33 @@ async function generateAudio(text: string, voiceId = '21m00Tcm4TlvDq8ikWAM') {
   return filename;
 }
 
+// Helper to simulate calling Shotstack API
+async function compileTimeline(timelineJson: any[]) {
+  const apiKey = process.env.SHOTSTACK_API_KEY;
+  if (!apiKey || apiKey === 'your_shotstack_api_key') {
+    console.log(`[Shotstack Mock] Would compile timeline with ${timelineJson.length} assets.`);
+    return 'mock_final_video_url.mp4';
+  }
+
+  console.log(`[Shotstack] Compiling timeline...`);
+  // Replace with actual Shotstack API endpoint
+  /*
+  const response = await fetch('https://api.shotstack.io/edit/v1/render', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      timeline: {
+        tracks: [{ clips: timelineJson }]
+      },
+      output: { format: 'mp4', resolution: 'hd' }
+    })
+  });
+  const data = await response.json();
+  return data.response.url;
+  */
+  return 'real_final_video_url.mp4';
+}
+
 async function main() {
   console.log('🎬 Starting Martin E2E Production...\n');
 
@@ -112,8 +139,17 @@ async function main() {
     audioUrls.push(audioUrl);
   }
 
+
+
+  // 4. Export Timeline for Shotstack
+  console.log('\n🎬 Compiling Timeline (Shotstack)...');
+  const shotstackPrompts = manifest.export('shotstack');
+  const timelineClips = shotstackPrompts.map(p => JSON.parse(p));
+  const finalVideoUrl = await compileTimeline(timelineClips);
+
   console.log('\n🎉 Production Complete!');
   console.log('Videos:', videoUrls);
+  console.log('Final Video:', finalVideoUrl);
   console.log('Audio:', audioUrls);
 }
 

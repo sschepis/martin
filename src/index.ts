@@ -4,6 +4,7 @@ import { RunwayGen3Adapter } from './adapters/runway-gen3';
 import { LumaDreamMachineAdapter } from './adapters/luma';
 import { SoraAdapter } from './adapters/sora';
 import { WeryAIAdapter } from './adapters/weryai';
+import { ShotstackAdapter } from './adapters/shotstack';
 
 export * from './types';
 
@@ -22,6 +23,7 @@ export class Martin {
     this.registerAdapter(new LumaDreamMachineAdapter());
     this.registerAdapter(new SoraAdapter());
     this.registerAdapter(new WeryAIAdapter());
+    this.registerAdapter(new ShotstackAdapter());
   }
 
   /**
