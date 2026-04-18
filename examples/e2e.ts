@@ -11,17 +11,51 @@ async function generateVideo(prompt: string) {
   }
 
   console.log(`[WeryAI] Generating video...`);
-  const response = await fetch('https://api.weryai.com/v1/generations', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-  if (!response.ok) {
-    console.log('[WeryAI] Failed to generate video, using fallback.');
+  try {
+    const startResponse = await fetch('https://api.weryai.com/v1/generation/text-to-video', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        model: 'WERYAI_VIDEO_1_0',
+        prompt: prompt.substring(0, 2000),
+        aspect_ratio: '16:9',
+        duration: 5
+      })
+    });
+    
+    const startData = await startResponse.json();
+    if (!startData.success || !startData.data?.task_id) {
+      console.error('[WeryAI] Start failed:', startData);
+      return 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
+    }
+    
+    const taskId = startData.data.task_id;
+    console.log(`[WeryAI] Task started: ${taskId}. Waiting for completion...`);
+    
+    // Poll for status
+    while (true) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const statusResponse = await fetch(`https://api.weryai.com/v1/generation/${taskId}/status`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
+      const statusData = await statusResponse.json();
+      
+      const status = statusData.data?.task_status;
+      if (status === 'succeed') {
+        const videoUrl = statusData.data?.videos?.[0];
+        console.log(`[WeryAI] Video generated: ${videoUrl}`);
+        return videoUrl || 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
+      } else if (status === 'failed' || status === 'error') {
+        console.error('[WeryAI] Generation failed:', statusData);
+        return 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
+      } else {
+        console.log(`[WeryAI] Polling task ${taskId}... status: ${status}`);
+      }
+    }
+  } catch (error) {
+    console.error('[WeryAI] Error generating video:', error);
     return 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
   }
-  const data = await response.json();
-  return data.videoUrl || data.url || 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
 }
 
 // Helper to simulate calling ElevenLabs API
@@ -90,6 +124,7 @@ async function main() {
 
   const director = new Martin({
     llmProvider: 'lmstudio',
+    promptCompactness: 'compact',
     model: process.env.LMSTUDIO_MODEL || 'local-model'
   });
 
