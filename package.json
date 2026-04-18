@@ -1,0 +1,28 @@
+{
+  "name": "martin",
+  "version": "1.0.0",
+  "description": "An LLM-driven media director for AI video generation",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node build-knowledge.js && tsc",
+    "test": "tsx test.ts"
+  },
+  "keywords": [
+    "ai",
+    "video",
+    "generation",
+    "llm",
+    "prompting",
+    "runway",
+    "sora",
+    "luma"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

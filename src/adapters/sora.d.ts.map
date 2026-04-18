@@ -1,0 +1,1 @@
+{"version":3,"file":"sora.d.ts","sourceRoot":"","sources":["sora.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,kBAAkB,EAAE,IAAI,EAAE,MAAM,UAAU,CAAC;AAE7D,qBAAa,WAAY,YAAW,OAAO;IACzC,IAAI,SAAU;IAEd,cAAc,CAAC,QAAQ,EAAE,kBAAkB,EAAE,IAAI,EAAE,IAAI,GAAG,MAAM;CAYjE"}
