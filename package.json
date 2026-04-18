@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "node build-knowledge.js && tsc",
-    "test": "tsx test.ts"
+    "test": "node --import tsx --test \"src/**/*.test.ts\" \"src/*.test.ts\"",
+    "test:manual": "tsx test.ts"
   },
   "keywords": [
     "ai",
