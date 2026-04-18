@@ -9,8 +9,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "ignoreDeprecations": "6.0"
+    "declaration": true
   },
   "include": ["src/**/*"]
 }
