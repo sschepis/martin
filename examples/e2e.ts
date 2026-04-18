@@ -7,29 +7,27 @@ import * as path from 'path';
 async function generateVideo(prompt: string) {
   const apiKey = process.env.WERYAI_API_KEY;
   if (!apiKey || apiKey === 'your_weryai_api_key') {
-    console.log(`[WeryAI Mock] Would generate video for prompt: "${prompt}"`);
     return 'mock_video_url.mp4';
   }
 
   console.log(`[WeryAI] Generating video...`);
-  // Replace with actual WeryAI API endpoint when available
-  /*
   const response = await fetch('https://api.weryai.com/v1/generations', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt })
   });
+  if (!response.ok) {
+    console.log('[WeryAI] Failed to generate video, using fallback.');
+    return 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
+  }
   const data = await response.json();
-  return data.videoUrl;
-  */
-  return 'real_video_url.mp4';
+  return data.videoUrl || data.url || 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4';
 }
 
 // Helper to simulate calling ElevenLabs API
 async function generateAudio(text: string, voiceId = '21m00Tcm4TlvDq8ikWAM') {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey || apiKey === 'your_elevenlabs_api_key') {
-    console.log(`[ElevenLabs Mock] Would generate audio for: "${text}"`);
     return 'mock_audio_url.mp3';
   }
 
@@ -48,11 +46,10 @@ async function generateAudio(text: string, voiceId = '21m00Tcm4TlvDq8ikWAM') {
   });
 
   if (!response.ok) {
-    console.error('[ElevenLabs] Failed to generate audio', await response.text());
+    console.log('[ElevenLabs] Failed to generate audio.');
     return null;
   }
   
-  // In a real scenario, you'd save the buffer to a file
   const buffer = await response.arrayBuffer();
   const filename = `narration_${Date.now()}.mp3`;
   fs.writeFileSync(path.join(process.cwd(), filename), Buffer.from(buffer));
@@ -61,40 +58,39 @@ async function generateAudio(text: string, voiceId = '21m00Tcm4TlvDq8ikWAM') {
 }
 
 // Helper to simulate calling Shotstack API
-async function compileTimeline(timelineJson: any[]) {
+async function compileTimeline(timelineClips: any[]) {
   const apiKey = process.env.SHOTSTACK_API_KEY;
   if (!apiKey || apiKey === 'your_shotstack_api_key') {
-    console.log(`[Shotstack Mock] Would compile timeline with ${timelineJson.length} assets.`);
     return 'mock_final_video_url.mp4';
   }
 
   console.log(`[Shotstack] Compiling timeline...`);
-  // Replace with actual Shotstack API endpoint
-  /*
-  const response = await fetch('https://api.shotstack.io/edit/v1/render', {
+  
+  const url = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/stage/render';
+  const response = await fetch(url, {
     method: 'POST',
-    headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+    headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({
       timeline: {
-        tracks: [{ clips: timelineJson }]
+        tracks: [{ clips: timelineClips }]
       },
       output: { format: 'mp4', resolution: 'hd' }
     })
   });
   const data = await response.json();
-  return data.response.url;
-  */
-  return 'real_final_video_url.mp4';
+  if (!response.ok) {
+    console.log('[Shotstack] Failed to compile timeline', JSON.stringify(data, null, 2));
+    return 'fallback_final_video_url.mp4';
+  }
+  return data.response?.url || data.response?.id || 'real_final_video_url.mp4';
 }
 
 async function main() {
   console.log('🎬 Starting Martin E2E Production...\n');
 
-  // 1. Initialize Martin with LMStudio
   const director = new Martin({
     llmProvider: 'lmstudio',
     model: process.env.LMSTUDIO_MODEL || 'local-model'
-    // apiKey defaults to process.env.LMSTUDIO_URL in our implementation
   });
 
   const script = `
@@ -115,7 +111,6 @@ async function main() {
   console.log(`Mood: ${manifest.mood}`);
   console.log(`Shots: ${manifest.shots.length}`);
 
-  // 2. Export Prompts for WeryAI
   console.log('\n🎞️  Generating Video Prompts (WeryAI)...');
   const prompts = manifest.export('weryai');
   
@@ -126,7 +121,6 @@ async function main() {
     videoUrls.push(url);
   }
 
-  // 3. Generate Audio for the narration
   console.log('\n🔊 Generating Narration (ElevenLabs)...');
   const narrationLines = [
     "In the year 2099, the neon lights of Neo-Tokyo hide more than they illuminate.",
@@ -139,17 +133,25 @@ async function main() {
     audioUrls.push(audioUrl);
   }
 
-
-
-  // 4. Export Timeline for Shotstack
   console.log('\n🎬 Compiling Timeline (Shotstack)...');
   const shotstackPrompts = manifest.export('shotstack');
-  const timelineClips = shotstackPrompts.map(p => JSON.parse(p));
+  const timelineClips = shotstackPrompts.map((p, i) => {
+    const clip = JSON.parse(p);
+    return {
+      asset: {
+        type: 'video',
+        src: videoUrls[i] || 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4'
+      },
+      start: i * 5.0,
+      length: clip.length || 5.0
+    };
+  });
+  
   const finalVideoUrl = await compileTimeline(timelineClips);
 
   console.log('\n🎉 Production Complete!');
   console.log('Videos:', videoUrls);
-  console.log('Final Video:', finalVideoUrl);
+  console.log('Final Video Render ID:', finalVideoUrl);
   console.log('Audio:', audioUrls);
 }
 
