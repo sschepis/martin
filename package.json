@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "node build-knowledge.js && tsc",
+    "e2e": "node --import tsx examples/e2e.ts",
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"src/*.test.ts\"",
     "test:manual": "tsx test.ts"
   },
@@ -25,5 +26,8 @@
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

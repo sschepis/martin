@@ -51,6 +51,50 @@ ${JSON.stringify(SPM_JSON_SCHEMA, null, 2)}
   async analyzeScript(script: string, options?: any): Promise<ProductionManifest> {
     const systemPrompt = this.generateSystemPrompt();
     
+
+    if (this.config.llmProvider === 'lmstudio' || this.config.llmProvider === 'openai') {
+      const apiUrl = this.config.apiKey?.startsWith('http') 
+        ? this.config.apiKey // If they passed the URL in apiKey
+        : process.env.LMSTUDIO_URL || 'http://127.0.0.1:1234/v1';
+      
+      const apiKey = this.config.apiKey && !this.config.apiKey.startsWith('http') 
+        ? this.config.apiKey 
+        : 'lm-studio';
+
+      console.log(`[LLMEngine] Calling LLM API at ${apiUrl}/chat/completions ...`);
+      
+      try {
+        const response = await fetch(`${apiUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: this.config.model || 'local-model',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Analyze the following script and generate a production manifest:\n\n${script}` }
+            ],
+            temperature: 0.7,
+            response_format: { type: 'json_object' }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`LLM API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          return JSON.parse(content) as ProductionManifest;
+        }
+      } catch (err) {
+        console.error('[LLMEngine] Failed to call LLM, falling back to mock.', err);
+      }
+    }
+
     // In a real implementation, this would build a prompt using schemas
     // and call OpenAI/Anthropic/etc., then parse the JSON response.
     console.log(`[LLMEngine] Analyzing script using ${this.config.llmProvider || 'default'}...`);
