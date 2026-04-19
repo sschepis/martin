@@ -1,5 +1,5 @@
 {
-  "name": "martin",
+  "name": "@sschepis/martin",
   "version": "1.0.0",
   "description": "An LLM-driven media director for AI video generation",
   "main": "dist/index.js",
