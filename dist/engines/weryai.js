@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WeryAIEngine = void 0;
-class WeryAIEngine {
+export class WeryAIEngine {
     apiKey;
     constructor() {
         this.apiKey = process.env.WERYAI_API_KEY || '';
@@ -114,4 +111,3 @@ class WeryAIEngine {
         }
     }
 }
-exports.WeryAIEngine = WeryAIEngine;

@@ -1,47 +1,28 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Martin = exports.LocalSceneCompiler = void 0;
-exports.createDirector = createDirector;
-const llm_1 = require("./llm");
-const runway_gen3_1 = require("./adapters/runway-gen3");
-const luma_1 = require("./adapters/luma");
-const sora_1 = require("./adapters/sora");
-const weryai_1 = require("./adapters/weryai");
-const shotstack_1 = require("./adapters/shotstack");
-const weryai_2 = require("./engines/weryai");
-const elevenlabs_1 = require("./engines/elevenlabs");
-const compiler_1 = require("./compiler");
-__exportStar(require("./types"), exports);
-var compiler_2 = require("./compiler");
-Object.defineProperty(exports, "LocalSceneCompiler", { enumerable: true, get: function () { return compiler_2.LocalSceneCompiler; } });
-class Martin {
+import { LLMEngine } from "./llm.js";
+import { RunwayGen3Adapter } from "./adapters/runway-gen3.js";
+import { LumaDreamMachineAdapter } from "./adapters/luma.js";
+import { SoraAdapter } from "./adapters/sora.js";
+import { WeryAIAdapter } from "./adapters/weryai.js";
+import { ShotstackAdapter } from "./adapters/shotstack.js";
+import { WeryAIEngine } from "./engines/weryai.js";
+import { ElevenLabsEngine } from "./engines/elevenlabs.js";
+import { LocalSceneCompiler } from "./compiler.js";
+export * from "./types.js";
+export { LocalSceneCompiler } from "./compiler.js";
+export class Martin {
     config;
     llmEngine;
     adapters;
     constructor(config = {}) {
         this.config = config;
-        this.llmEngine = new llm_1.LLMEngine(config);
+        this.llmEngine = new LLMEngine(config);
         // Register built-in adapters
         this.adapters = new Map();
-        this.registerAdapter(new runway_gen3_1.RunwayGen3Adapter());
-        this.registerAdapter(new luma_1.LumaDreamMachineAdapter());
-        this.registerAdapter(new sora_1.SoraAdapter());
-        this.registerAdapter(new weryai_1.WeryAIAdapter());
-        this.registerAdapter(new shotstack_1.ShotstackAdapter());
+        this.registerAdapter(new RunwayGen3Adapter());
+        this.registerAdapter(new LumaDreamMachineAdapter());
+        this.registerAdapter(new SoraAdapter());
+        this.registerAdapter(new WeryAIAdapter());
+        this.registerAdapter(new ShotstackAdapter());
     }
     /**
      * Registers a new video generation adapter.
@@ -67,9 +48,9 @@ class Martin {
      * Produces the full video by executing the pipeline.
      */
     async produce(manifest, options = {}) {
-        const weryai = new weryai_2.WeryAIEngine();
-        const elevenlabs = new elevenlabs_1.ElevenLabsEngine();
-        const compiler = new compiler_1.LocalSceneCompiler();
+        const weryai = new WeryAIEngine();
+        const elevenlabs = new ElevenLabsEngine();
+        const compiler = new LocalSceneCompiler();
         console.log('\n🎬 Starting Production Execution...');
         const weryaiAdapter = this.adapters.get('weryai');
         const clips = [];
@@ -109,8 +90,7 @@ class Martin {
         return manifest.shots.map(shot => adapter.generatePrompt(manifest, shot));
     }
 }
-exports.Martin = Martin;
 // Export a default instance creator for convenience
-function createDirector(config) {
+export function createDirector(config) {
     return new Martin(config);
 }

@@ -1,9 +1,20 @@
 {
   "name": "@sschepis/martin",
-  "version": "1.0.0",
+  "version": "1.0.2",
+  "type": "module",
   "description": "An LLM-driven media director for AI video generation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sschepis/martin.git"
+  },
   "scripts": {
     "build": "node build-knowledge.js && tsc",
     "e2e": "node --import tsx examples/e2e.ts",
@@ -20,14 +31,12 @@
     "sora",
     "luma"
   ],
-  "author": "",
+  "author": "Sebastian Schepis",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
+    "dotenv": "^17.4.2",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "dotenv": "^17.4.2"
+    "typescript": "^5.7.0"
   }
 }

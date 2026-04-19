@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import * as assert from 'node:assert';
-import { SoraAdapter } from './sora';
-import { ProductionManifest, Shot } from '../types';
+import { SoraAdapter } from './sora.ts';
+import { ProductionManifest, Shot } from '../types.ts';
 
 describe('SoraAdapter', () => {
   const adapter = new SoraAdapter();

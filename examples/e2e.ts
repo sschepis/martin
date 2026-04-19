@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { Martin, LocalSceneCompiler } from '../src/index';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Martin, LocalSceneCompiler } from '../src/index.ts';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // Helper to simulate calling the WeryAI API
 async function generateVideo(prompt: string) {
@@ -86,7 +86,7 @@ async function generateAudio(text: string, voiceId = '21m00Tcm4TlvDq8ikWAM') {
   
   const buffer = await response.arrayBuffer();
   const filename = `narration_${Date.now()}.mp3`;
-  fs.writeFileSync(path.join(process.cwd(), filename), Buffer.from(buffer));
+  fs.writeFileSync(path.join(process.cwd(), filename), new Uint8Array(buffer));
   
   return filename;
 }

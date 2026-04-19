@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export class ElevenLabsEngine {
   private apiKey: string;
@@ -37,7 +37,7 @@ export class ElevenLabsEngine {
       const buffer = await response.arrayBuffer();
       const fileName = `narration_${Date.now()}.mp3`;
       const filePath = path.join(process.cwd(), fileName);
-      fs.writeFileSync(filePath, Buffer.from(buffer));
+      fs.writeFileSync(filePath, new Uint8Array(buffer));
       return filePath;
     } catch (error) {
       console.error('[ElevenLabs] Error generating audio:', error);

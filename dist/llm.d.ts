@@ -1,4 +1,4 @@
-import { MartinConfig, ProductionManifest } from './types';
+import { MartinConfig, ProductionManifest } from './types.ts';
 export declare class LLMEngine {
     private config;
     constructor(config: MartinConfig);

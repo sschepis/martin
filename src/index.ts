@@ -1,17 +1,19 @@
-import { MartinConfig, ProductionManifest, Adapter } from './types';
-import { LLMEngine } from './llm';
-import { RunwayGen3Adapter } from './adapters/runway-gen3';
-import { LumaDreamMachineAdapter } from './adapters/luma';
-import { SoraAdapter } from './adapters/sora';
-import { WeryAIAdapter } from './adapters/weryai';
-import { ShotstackAdapter } from './adapters/shotstack';
-import { WeryAIEngine } from './engines/weryai';
-import { ElevenLabsEngine } from './engines/elevenlabs';
-import { ProduceOptions } from './types';
-import { LocalSceneCompiler, SceneClip } from './compiler';
+import { MartinConfig, ProductionManifest, Adapter } from './types.ts';
+import { LLMEngine } from './llm.ts';
+import { RunwayGen3Adapter } from './adapters/runway-gen3.ts';
+import { LumaDreamMachineAdapter } from './adapters/luma.ts';
+import { SoraAdapter } from './adapters/sora.ts';
+import { WeryAIAdapter } from './adapters/weryai.ts';
+import { ShotstackAdapter } from './adapters/shotstack.ts';
+import { WeryAIEngine } from './engines/weryai.ts';
+import { ElevenLabsEngine } from './engines/elevenlabs.ts';
+import { ProduceOptions } from './types.ts';
+import { LocalSceneCompiler } from './compiler.ts';
+import type { SceneClip } from './compiler.ts';
 
-export * from './types';
-export { LocalSceneCompiler, SceneClip } from './compiler';
+export * from './types.ts';
+export { LocalSceneCompiler } from './compiler.ts';
+export type { SceneClip } from './compiler.ts';
 
 export class Martin {
   private config: MartinConfig;

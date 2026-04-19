@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Martin } from '../src/index';
+import { Martin } from '../src/index.ts';
 
 async function main() {
   console.log('💄 Starting TikTok Ad Production for "Lumière Éternelle"...\n');

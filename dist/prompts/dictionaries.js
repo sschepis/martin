@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Lenses = exports.LightingStyles = exports.CameraAngles = exports.CameraMovements = void 0;
-exports.CameraMovements = [
+export const CameraMovements = [
     'Static',
     'Pan',
     'Tilt',
@@ -15,7 +12,7 @@ exports.CameraMovements = [
     'Zoom Out',
     'Whip Pan'
 ];
-exports.CameraAngles = [
+export const CameraAngles = [
     'Eye-Level',
     'High Angle',
     'Low Angle',
@@ -24,7 +21,7 @@ exports.CameraAngles = [
     "Bird's Eye View",
     "Worm's Eye View"
 ];
-exports.LightingStyles = [
+export const LightingStyles = [
     'High-Key',
     'Low-Key',
     'Chiaroscuro',
@@ -34,7 +31,7 @@ exports.LightingStyles = [
     'Silhouette',
     'Cinematic Rim Light'
 ];
-exports.Lenses = [
+export const Lenses = [
     '14mm Ultra-Wide',
     '24mm Wide',
     '35mm Standard Wide',

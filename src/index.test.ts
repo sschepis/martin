@@ -1,7 +1,7 @@
 import { test, describe, mock } from 'node:test';
 import * as assert from 'node:assert';
-import { Martin, createDirector } from './index';
-import { Adapter, ProductionManifest, Shot } from './types';
+import { Martin, createDirector } from './index.ts';
+import { Adapter, ProductionManifest, Shot } from './types.ts';
 
 describe('Martin', () => {
   test('initializes with built-in adapters', () => {

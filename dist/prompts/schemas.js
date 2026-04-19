@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SPM_JSON_SCHEMA = void 0;
-exports.SPM_JSON_SCHEMA = {
+export const SPM_JSON_SCHEMA = {
     type: 'object',
     properties: {
         title: { type: 'string', description: 'The title of the production' },

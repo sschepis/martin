@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ShotstackAdapter = void 0;
-class ShotstackAdapter {
+export class ShotstackAdapter {
     name = 'shotstack';
     generatePrompt(manifest, shot) {
         // Shotstack is primarily a video editing/compositing API rather than a generative AI.
@@ -23,4 +20,3 @@ class ShotstackAdapter {
         }, null, 2);
     }
 }
-exports.ShotstackAdapter = ShotstackAdapter;

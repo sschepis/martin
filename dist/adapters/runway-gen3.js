@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RunwayGen3Adapter = void 0;
-class RunwayGen3Adapter {
+export class RunwayGen3Adapter {
     name = 'runway-gen3';
     generatePrompt(manifest, shot) {
         // Runway Gen-3 Alpha/Turbo responds extremely well to explicit structural keywords, 
@@ -20,4 +17,3 @@ class RunwayGen3Adapter {
         return parts.filter(p => p && p.trim() !== '').join(' | ');
     }
 }
-exports.RunwayGen3Adapter = RunwayGen3Adapter;

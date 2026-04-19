@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LLMEngine = void 0;
-const knowledge_1 = require("./knowledge");
-const schemas_1 = require("./prompts/schemas");
-class LLMEngine {
+import { FST_KNOWLEDGE_FULL, FST_KNOWLEDGE_COMPACT, SDS_KNOWLEDGE_FULL, SDS_KNOWLEDGE_COMPACT } from "./knowledge/index.js";
+import { SPM_JSON_SCHEMA } from "./prompts/schemas.js";
+export class LLMEngine {
     config;
     constructor(config) {
         this.config = config;
@@ -17,12 +14,12 @@ class LLMEngine {
         let sdsSection = '';
         let fstSection = '';
         if (compactness === 'full') {
-            sdsSection = `\nHere is the Scene Design System (SDS) you must follow:\n---\n${knowledge_1.SDS_KNOWLEDGE_FULL}\n---\n`;
-            fstSection = `\nHere is the Film Shot & Technique (FST) Cheat Sheet you must use for terminology:\n---\n${knowledge_1.FST_KNOWLEDGE_FULL}\n---\n`;
+            sdsSection = `\nHere is the Scene Design System (SDS) you must follow:\n---\n${SDS_KNOWLEDGE_FULL}\n---\n`;
+            fstSection = `\nHere is the Film Shot & Technique (FST) Cheat Sheet you must use for terminology:\n---\n${FST_KNOWLEDGE_FULL}\n---\n`;
         }
         else if (compactness === 'compact') {
-            sdsSection = `\nHere is the condensed Scene Design System (SDS) you must follow:\n---\n${knowledge_1.SDS_KNOWLEDGE_COMPACT}\n---\n`;
-            fstSection = `\nHere is the condensed Film Shot & Technique (FST) vocabulary you must use:\n---\n${knowledge_1.FST_KNOWLEDGE_COMPACT}\n---\n`;
+            sdsSection = `\nHere is the condensed Scene Design System (SDS) you must follow:\n---\n${SDS_KNOWLEDGE_COMPACT}\n---\n`;
+            fstSection = `\nHere is the condensed Film Shot & Technique (FST) vocabulary you must use:\n---\n${FST_KNOWLEDGE_COMPACT}\n---\n`;
         }
         else if (compactness === 'minimal') {
             // In minimal mode, we omit the heavy markdown documents entirely
@@ -35,7 +32,7 @@ Your job is to translate human creative intent into a structured Shot Production
 You do not generate pixels; you generate the cinematic vision.
 ${sdsSection}${fstSection}
 You must output valid JSON strictly adhering to the following JSON Schema:
-${JSON.stringify(schemas_1.SPM_JSON_SCHEMA, null, 2)}
+${JSON.stringify(SPM_JSON_SCHEMA, null, 2)}
 `;
     }
     /**
@@ -138,4 +135,3 @@ ${JSON.stringify(schemas_1.SPM_JSON_SCHEMA, null, 2)}
         return mockManifest;
     }
 }
-exports.LLMEngine = LLMEngine;

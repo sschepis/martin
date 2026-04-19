@@ -1,7 +1,8 @@
-import { MartinConfig, ProductionManifest, Adapter } from './types';
-import { ProduceOptions } from './types';
-export * from './types';
-export { LocalSceneCompiler, SceneClip } from './compiler';
+import { MartinConfig, ProductionManifest, Adapter } from './types.ts';
+import { ProduceOptions } from './types.ts';
+export * from './types.ts';
+export { LocalSceneCompiler } from './compiler.ts';
+export type { SceneClip } from './compiler.ts';
 export declare class Martin {
     private config;
     private llmEngine;

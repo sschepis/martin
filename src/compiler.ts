@@ -1,8 +1,8 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 
 const execAsync = promisify(exec);
 
@@ -21,7 +21,7 @@ export class LocalSceneCompiler {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}`);
     const buffer = await response.arrayBuffer();
-    fs.writeFileSync(destPath, Buffer.from(buffer));
+    fs.writeFileSync(destPath, new Uint8Array(buffer));
   }
 
   async compile(clips: SceneClip[], outputPath: string, options: {width?: number, height?: number} = {}): Promise<string> {

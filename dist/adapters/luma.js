@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LumaDreamMachineAdapter = void 0;
-class LumaDreamMachineAdapter {
+export class LumaDreamMachineAdapter {
     name = 'luma';
     generatePrompt(manifest, shot) {
         // Luma Dream Machine generates highly realistic motion when given visceral, descriptive language 
@@ -17,4 +14,3 @@ class LumaDreamMachineAdapter {
             `High fidelity, photorealistic textures, 4k resolution.`;
     }
 }
-exports.LumaDreamMachineAdapter = LumaDreamMachineAdapter;

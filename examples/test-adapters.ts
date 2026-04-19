@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Martin } from '../src/index';
+import { Martin } from '../src/index.ts';
 
 async function generateWeryAiVideo(prompt: string, model: string, adapter: string, duration: number) {
   const apiKey = process.env.WERYAI_API_KEY;

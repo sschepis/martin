@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import * as assert from 'node:assert';
-import { ShotstackAdapter } from './shotstack';
-import { ProductionManifest, Shot } from '../types';
+import { ShotstackAdapter } from './shotstack.ts';
+import { ProductionManifest, Shot } from '../types.ts';
 
 describe('ShotstackAdapter', () => {
   const adapter = new ShotstackAdapter();

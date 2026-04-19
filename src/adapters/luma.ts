@@ -1,4 +1,4 @@
-import { Adapter, ProductionManifest, Shot } from '../types';
+import { Adapter, ProductionManifest, Shot } from '../types.ts';
 
 export class LumaDreamMachineAdapter implements Adapter {
   name = 'luma';

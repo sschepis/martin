@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "build": "deno run -A build-knowledge.js && deno check src/**/*.ts",
+    "test": "deno test src/",
+    "e2e": "deno run -A examples/e2e.ts"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "strict": true
+  }
+}

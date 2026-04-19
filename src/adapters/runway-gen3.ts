@@ -1,4 +1,4 @@
-import { Adapter, ProductionManifest, Shot } from '../types';
+import { Adapter, ProductionManifest, Shot } from '../types.ts';
 
 export class RunwayGen3Adapter implements Adapter {
   name = 'runway-gen3';

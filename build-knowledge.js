@@ -1,7 +1,7 @@
-const fs = require('fs');
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const fst = fs.readFileSync('fst.md', 'utf-8');
-const sds = fs.readFileSync('sds.md', 'utf-8');
+const fst = readFileSync('fst.md', 'utf-8');
+const sds = readFileSync('sds.md', 'utf-8');
 
 // Full versions
 const fstFull = fst;
@@ -25,4 +25,4 @@ export const SDS_KNOWLEDGE_FULL = ${JSON.stringify(sdsFull)};
 export const SDS_KNOWLEDGE_COMPACT = ${JSON.stringify(sdsCompact)};
 `;
 
-fs.writeFileSync('src/knowledge/index.ts', content);
+writeFileSync('src/knowledge/index.ts', content);

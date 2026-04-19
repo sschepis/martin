@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WeryAIAdapter = void 0;
-class WeryAIAdapter {
+export class WeryAIAdapter {
     name = 'weryai';
     generatePrompt(manifest, shot) {
         // WeryAI (Kling/Veo engine) responds best to highly descriptive, visually rich, and natural language narrative prompts.
@@ -27,4 +24,3 @@ class WeryAIAdapter {
             `Masterpiece, 8k resolution, highly detailed, professional photography.`;
     }
 }
-exports.WeryAIAdapter = WeryAIAdapter;

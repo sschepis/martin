@@ -1,9 +1,9 @@
-import { MartinConfig, ProductionManifest, Shot } from './types';
-import { 
-  FST_KNOWLEDGE_FULL, FST_KNOWLEDGE_COMPACT, 
-  SDS_KNOWLEDGE_FULL, SDS_KNOWLEDGE_COMPACT 
-} from './knowledge';
-import { SPM_JSON_SCHEMA } from './prompts/schemas';
+import { MartinConfig, ProductionManifest, Shot } from './types.ts';
+import {
+  FST_KNOWLEDGE_FULL, FST_KNOWLEDGE_COMPACT,
+  SDS_KNOWLEDGE_FULL, SDS_KNOWLEDGE_COMPACT
+} from './knowledge/index.ts';
+import { SPM_JSON_SCHEMA } from './prompts/schemas.ts';
 
 export class LLMEngine {
   private config: MartinConfig;

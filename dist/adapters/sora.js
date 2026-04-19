@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SoraAdapter = void 0;
-class SoraAdapter {
+export class SoraAdapter {
     name = 'sora';
     generatePrompt(manifest, shot) {
         // Sora excels at highly descriptive, natural language prompts that read like a story or detailed visual description.
@@ -15,4 +12,3 @@ class SoraAdapter {
         return prompt;
     }
 }
-exports.SoraAdapter = SoraAdapter;
