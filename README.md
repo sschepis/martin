@@ -13,7 +13,7 @@
 ## 📦 Installation
 
 ```bash
-npm install martin
+npm install @sschepis/martin
 ```
 *(Note: You must have `ffmpeg` installed on your system to use the `LocalSceneCompiler`)*
 
@@ -32,7 +32,7 @@ Here is how you can use `martin` to plan, generate, and compile a complete TikTo
 
 ```typescript
 import 'dotenv/config';
-import { Martin } from 'martin';
+import { Martin } from '@sschepis/martin';
 
 async function main() {
   const director = new Martin({
