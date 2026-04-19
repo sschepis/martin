@@ -1,5 +1,6 @@
 import { MartinConfig, ProductionManifest, Adapter } from './types';
 export * from './types';
+export { LocalSceneCompiler, SceneClip } from './compiler';
 export declare class Martin {
     private config;
     private llmEngine;

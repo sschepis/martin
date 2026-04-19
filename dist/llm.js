@@ -66,14 +66,20 @@ ${JSON.stringify(schemas_1.SPM_JSON_SCHEMA, null, 2)}
                             { role: 'user', content: `Analyze the following script and generate a production manifest:\n\n${script}` }
                         ],
                         temperature: 0.7,
-                        response_format: { type: 'json_object' }
+                        // response_format: { type: 'json_object' }
                     })
                 });
                 if (!response.ok) {
                     throw new Error(`LLM API Error: ${response.status} ${response.statusText}`);
                 }
                 const data = await response.json();
-                const content = data.choices?.[0]?.message?.content;
+                let content = data.choices?.[0]?.message?.content;
+                if (content && content.includes('```')) {
+                    const match = content.match(/```(?:json)?\n([\s\S]*?)\n```/);
+                    if (match)
+                        content = match[1];
+                }
+                content = content?.trim();
                 if (content) {
                     return JSON.parse(content);
                 }

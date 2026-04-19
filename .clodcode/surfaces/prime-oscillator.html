@@ -1,0 +1,795 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Coupled Oscillator Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        
+        canvas {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            border-radius: 0.5rem;
+        }
+        
+        .node {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px currentColor;
+            transition: all 0.1s ease-out;
+        }
+        
+        .connection {
+            position: absolute;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform-origin: 0 0;
+            pointer-events: none;
+        }
+        
+        .energy-pulse {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 0.5rem;
+            background-color: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            border-radius: 0.25rem;
+            pointer-events: none;
+            z-index: 100;
+            font-size: 0.8rem;
+            max-width: 200px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .prime-badge {
+            display: inline-block;
+            padding: 0.1rem 0.3rem;
+            background-color: #1e40af;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            margin-right: 0.2rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .entropy-channel {
+            height: 4px;
+            background: linear-gradient(90deg, #0ea5e9, #8b5cf6);
+            margin-bottom: 0.2rem;
+            border-radius: 2px;
+        }
+        
+        .triune-bar {
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 0.2rem;
+        }
+        
+        .stabilizer {
+            background-color: #10b981;
+        }
+        
+        .oscillator {
+            background-color: #3b82f6;
+        }
+        
+        .catalyst {
+            background-color: #f59e0b;
+        }
+        
+        .pane-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+        }
+        
+        .tp-dfwv {
+            width: 300px !important;
+            background-color: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(5px) !important;
+            border: 1px solid #334155 !important;
+        }
+        
+        .tp-lblv_l {
+            color: #e2e8f0 !important;
+        }
+        
+        .tp-rotv_b {
+            background-color: #1e293b !important;
+        }
+        
+        .tp-rotv_b:hover {
+            background-color: #334155 !important;
+        }
+        
+        .tp-rotv_r {
+            background-color: #1e40af !important;
+        }
+        
+        .tp-rotv_r:hover {
+            background-color: #1e40af !important;
+        }
+        
+        .tp-ckbv_w {
+            background-color: #1e293b !important;
+        }
+        
+        .tp-ckbv_c {
+            background-color: #1e40af !important;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col">
+    <header class="bg-slate-900/50 border-b border-slate-800 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Prime Coupled Oscillator Playground
+            </h1>
+            <div class="flex space-x-2">
+                <button id="reset-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset
+                </button>
+                <button id="pause-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Pause
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <main class="flex-1 relative overflow-hidden">
+        <div id="canvas-container" class="absolute inset-0 flex items-center justify-center">
+            <canvas id="oscillator-canvas"></canvas>
+        </div>
+        
+        <div class="pane-container">
+            <!-- Tweakpane will be injected here -->
+        </div>
+        
+        <div id="tooltip" class="tooltip hidden"></div>
+        
+        <div class="absolute bottom-4 left-4 bg-slate-900/50 border border-slate-800 rounded-md p-4 max-w-xs">
+            <h3 class="font-bold mb-2 text-blue-400">Legend</h3>
+            
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3b82f6;"></div>
+                <span>Oscillator Node</span>
+            </div>
+            
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(255, 255, 255, 0.3); width: 30px; height: 2px;"></div>
+                <span>Connection</span>
+            </div>
+            
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #f59e0b;"></div>
+                <span>Energy Pulse</span>
+            </div>
+            
+            <div class="mb-3 mt-4">
+                <div class="text-sm text-slate-400 mb-1">Triune Components:</div>
+                <div class="triune-bar stabilizer" style="width: 33%"></div>
+                <div class="triune-bar oscillator" style="width: 33%"></div>
+                <div class="triune-bar catalyst" style="width: 34%"></div>
+                <div class="flex justify-between text-xs text-slate-400 mt-1">
+                    <span>Stabilizer</span>
+                    <span>Oscillator</span>
+                    <span>Catalyst</span>
+                </div>
+            </div>
+            
+            <div class="text-xs text-slate-400">
+                <p>Click on nodes to inspect their properties.</p>
+                <p>Drag nodes to interact with the system.</p>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-slate-900/50 border-t border-slate-800 p-2 text-center text-sm text-slate-500">
+        <p>Prime Coupled Oscillator System - Nodes form low entropy connections based on prime resonance</p>
+    </footer>
+
+    <script>
+        // System parameters
+        const params = {
+            numNodes: 15,
+            timeStep: 0,
+            simulationSpeed: 1,
+            nodeSize: 10,
+            connectionThreshold: 0.4,
+            maxConnections: 5,
+            energyDecay: 0.995,
+            entropyRate: 0.001,
+            showConnections: true,
+            showEnergyPulses: true,
+            showNodeInfo: true,
+            gravity: 0.0001,
+            repulsionForce: 0.1,
+            damping: 0.98,
+            baseFrequency: 0.02,
+            frequencyVariation: 0.01,
+            baseAmplitude: 0.1,
+            amplitudeVariation: 0.05,
+            environmentalEntropy: 0.1
+        };
+        
+        // System state
+        let nodes = [];
+        let connections = [];
+        let environmentalEntropy = Array(5).fill().map(() => ({
+            value: 0,
+            avgPhase: 0
+        }));
+        
+        // Animation control
+        let animationId = null;
+        let isPaused = false;
+        let lastTime = 0;
+        let selectedNode = null;
+        let hoverNode = null;
+        
+        // Canvas setup
+        const canvas = document.getElementById('oscillator-canvas');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('tooltip');
+        
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            render();
+        });
+        
+        // Prime number utilities
+        function isPrime(num) {
+            if (num <= 1) return false;
+            if (num <= 3) return true;
+            if (num % 2 === 0 || num % 3 === 0) return false;
+            let i = 5;
+            while (i * i <= num) {
+                if (num % i === 0 || num % (i + 2) === 0) return false;
+                i += 6;
+            }
+            return true;
+        }
+        
+        function getNPrimes(n) {
+            const primes = [];
+            let num = 2;
+            while (primes.length < n) {
+                if (isPrime(num)) {
+                    primes.push(num);
+                }
+                num++;
+            }
+            return primes;
+        }
+        
+        // System initialization
+        function initializeSystem() {
+            params.timeStep = 0;
+            nodes = [];
+            connections = [];
+            
+            const primes = getNPrimes(params.numNodes * 3);
+            
+            // Initialize nodes
+            for (let i = 0; i < params.numNodes; i++) {
+                const angle = (i / params.numNodes) * Math.PI * 2;
+                const radius = 0.4;
+                
+                nodes.push({
+                    id: i,
+                    position: {
+                        x: 0.5 + Math.cos(angle) * radius,
+                        y: 0.5 + Math.sin(angle) * radius
+                    },
+                    phase: Math.random() * Math.PI * 2,
+                    frequency: params.baseFrequency + (Math.random() - 0.5) * params.frequencyVariation,
+                    amplitude: params.baseAmplitude + Math.random() * params.amplitudeVariation,
+                    entropy: 0.1 + Math.random() * 0.1,
+                    energy: 1.0 / params.numNodes,
+                    primes: primes.slice(i * 3, i * 3 + 3),
+                    triune: {
+                        stabilizer: 0.3 + Math.random() * 0.2,
+                        oscillator: 0.3 + Math.random() * 0.2,
+                        catalyst: 0.3 + Math.random() * 0.2
+                    },
+                    entropyChannels: Array(5).fill().map(() => ({
+                        value: Math.random() * 0.2,
+                        phase: Math.random() * Math.PI * 2,
+                        minPhase: 0,
+                        maxPhase: Math.PI * 2
+                    })),
+                    connections: 0,
+                    mass: 1 + Math.random(),
+                    velocity: { x: 0, y: 0 },
+                    force: { x: 0, y: 0 },
+                    maxConnections: params.maxConnections,
+                    structuralTendency: 0.5 + Math.random() * 0.5,
+                    history: [],
+                    color: `hsl(${Math.floor(i * 360 / params.numNodes)}, 80%, 60%)`
+                });
+                
+                // Normalize triune components to sum to 1
+                const sum = nodes[i].triune.stabilizer + nodes[i].triune.oscillator + nodes[i].triune.catalyst;
+                nodes[i].triune.stabilizer /= sum;
+                nodes[i].triune.oscillator /= sum;
+                nodes[i].triune.catalyst /= sum;
+            }
+            
+            // Initialize connections based on resonance compatibility
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const compatibility = calculateResonanceCompatibility(nodes[i], nodes[j]);
+                    if (compatibility > params.connectionThreshold && 
+                        nodes[i].connections < nodes[i].maxConnections && 
+                        nodes[j].connections < nodes[j].maxConnections) {
+                        connections.push({
+                            nodes: [i, j],
+                            strength: compatibility,
+                            phase: Math.random() * Math.PI * 2,
+                            age: 0,
+                            tension: 0,
+                            color: `rgba(255, 255, 255, ${compatibility * 0.7})`
+                        });
+                        nodes[i].connections++;
+                        nodes[j].connections++;
+                    }
+                }
+            }
+            
+            // Initialize environmental entropy
+            for (let j = 0; j < 5; j++) {
+                environmentalEntropy[j] = {
+                    value: params.environmentalEntropy * (0.8 + Math.random() * 0.4),
+                    avgPhase: Math.random() * Math.PI * 2
+                };
+            }
+        }
+        
+        // Resonance compatibility calculation
+        function calculateResonanceCompatibility(nodeA, nodeB) {
+            // Simple compatibility based on prime number relationships
+            let compatibility = 0;
+            
+            // Check for shared prime factors
+            for (const primeA of nodeA.primes) {
+                for (const primeB of nodeB.primes) {
+                    if (primeA === primeB) {
+                        compatibility += 0.2;
+                    } else if (Math.max(primeA, primeB) % Math.min(primeA, primeB) === 0) {
+                        compatibility += 0.1;
+                    }
+                }
+            }
+            
+            // Add some randomness based on triune components
+            const triuneMatch = 1 - Math.abs(
+                (nodeA.triune.oscillator - nodeB.triune.oscillator) +
+                (nodeA.triune.stabilizer - nodeB.triune.stabilizer) * 0.5 +
+                (nodeA.triune.catalyst - nodeB.triune.catalyst) * 0.5
+            ) / 2;
+            
+            compatibility = Math.min(1, compatibility + triuneMatch * 0.3 + Math.random() * 0.1);
+            
+            return compatibility;
+        }
+        
+        // System update
+        function updateSystem(deltaTime) {
+            params.timeStep++;
+            
+            // Update environmental entropy
+            for (let j = 0; j < 5; j++) {
+                environmentalEntropy[j].value = params.environmentalEntropy * (0.8 + Math.random() * 0.4);
+                environmentalEntropy[j].avgPhase += 0.01;
+                if (environmentalEntropy[j].avgPhase > Math.PI * 2) {
+                    environmentalEntropy[j].avgPhase -= Math.PI * 2;
+                }
+            }
+            
+            // Reset forces
+            for (const node of nodes) {
+                node.force = { x: 0, y: 0 };
+            }
+            
+            // Apply gravity-like force towards center
+            for (const node of nodes) {
+                const dx = 0.5 - node.position.x;
+                const dy = 0.5 - node.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const forceMagnitude = params.gravity * node.mass * distance;
+                
+                if (distance > 0.01) {
+                    node.force.x += (dx / distance) * forceMagnitude;
+                    node.force.y += (dy / distance) * forceMagnitude;
+                }
+            }
+            
+            // Apply repulsion between nodes
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[j].position.x - nodes[i].position.x;
+                    const dy = nodes[j].position.y - nodes[i].position.y;
+                    const distanceSq = dx * dx + dy * dy;
+                    const minDistance = 0.05;
+                    
+                    if (distanceSq < minDistance * minDistance) {
+                        const distance = Math.sqrt(distanceSq);
+                        const forceMagnitude = params.repulsionForce / Math.max(0.01, distanceSq);
+                        
+                        nodes[i].force.x -= (dx / distance) * forceMagnitude;
+                        nodes[i].force.y -= (dy / distance) * forceMagnitude;
+                        nodes[j].force.x += (dx / distance) * forceMagnitude;
+                        nodes[j].force.y += (dy / distance) * forceMagnitude;
+                    }
+                }
+            }
+            
+            // Update connections and apply spring forces
+            for (const connection of connections) {
+                connection.age++;
+                
+                const nodeA = nodes[connection.nodes[0]];
+                const nodeB = nodes[connection.nodes[1]];
+                
+                const dx = nodeB.position.x - nodeA.position.x;
+                const dy = nodeB.position.y - nodeA.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const targetDistance = 0.2 * (1 + 0.2 * Math.sin(params.timeStep * 0.01));
+                
+                if (distance > 0) {
+                    const displacement = distance - targetDistance;
+                    const forceMagnitude = connection.strength * displacement * 0.1;
+                    
+                    nodeA.force.x += (dx / distance) * forceMagnitude;
+                    nodeA.force.y += (dy / distance) * forceMagnitude;
+                    nodeB.force.x -= (dx / distance) * forceMagnitude;
+                    nodeB.force.y -= (dy / distance) * forceMagnitude;
+                    
+                    // Update connection tension based on displacement
+                    connection.tension = Math.abs(displacement) / targetDistance;
+                }
+                
+                // Update connection phase based on node phases
+                connection.phase = (nodeA.phase + nodeB.phase) / 2;
+            }
+            
+            // Update nodes
+            for (const node of nodes) {
+                // Update velocity and position
+                node.velocity.x = (node.velocity.x + node.force.x / node.mass) * params.damping;
+                node.velocity.y = (node.velocity.y + node.force.y / node.mass) * params.damping;
+                
+                node.position.x += node.velocity.x * deltaTime;
+                node.position.y += node.velocity.y * deltaTime;
+                
+                // Keep within bounds
+                node.position.x = Math.max(0.05, Math.min(0.95, node.position.x));
+                node.position.y = Math.max(0.05, Math.min(0.95, node.position.y));
+                
+                // Update phase and amplitude
+                node.phase += node.frequency * deltaTime;
+                if (node.phase > Math.PI * 2) {
+                    node.phase -= Math.PI * 2;
+                }
+                
+                // Update energy (decay and gain from connections)
+                node.energy *= params.energyDecay;
+                if (node.connections > 0) {
+                    node.energy += 0.001 * node.connections * deltaTime;
+                }
+                
+                // Update entropy
+                node.entropy = Math.min(1, node.entropy + params.entropyRate * deltaTime);
+                
+                // Update triune components slightly
+                node.triune.oscillator += (Math.random() - 0.5) * 0.01 * deltaTime;
+                node.triune.stabilizer += (Math.random() - 0.5) * 0.01 * deltaTime;
+                node.triune.catalyst += (Math.random() - 0.5) * 0.01 * deltaTime;
+                
+                // Normalize triune components
+                const sum = node.triune.stabilizer + node.triune.oscillator + node.triune.catalyst;
+                node.triune.stabilizer /= sum;
+                node.triune.oscillator /= sum;
+                node.triune.catalyst /= sum;
+                
+                // Update entropy channels
+                for (let j = 0; j < 5; j++) {
+                    node.entropyChannels[j].value = Math.min(1, 
+                        node.entropyChannels[j].value + (Math.random() - 0.5) * 0.01 * deltaTime
+                    );
+                    node.entropyChannels[j].phase += 0.01 * deltaTime;
+                    if (node.entropyChannels[j].phase > Math.PI * 2) {
+                        node.entropyChannels[j].phase -= Math.PI * 2;
+                    }
+                }
+                
+                // Record history (for trails)
+                node.history.push({ x: node.position.x, y: node.position.y });
+                if (node.history.length > 20) {
+                    node.history.shift();
+                }
+            }
+            
+            // Occasionally form or break connections
+            if (params.timeStep % 100 === 0) {
+                updateConnections();
+            }
+        }
+        
+        function updateConnections() {
+            // Break weak connections
+            for (let i = connections.length - 1; i >= 0; i--) {
+                const connection = connections[i];
+                const nodeA = nodes[connection.nodes[0]];
+                const nodeB = nodes[connection.nodes[1]];
+                
+                // Connection breaks if tension is too high or compatibility decreases
+                const currentCompatibility = calculateResonanceCompatibility(nodeA, nodeB);
+                if (connection.tension > 1.5 || currentCompatibility < params.connectionThreshold * 0.8) {
+                    nodes[connection.nodes[0]].connections--;
+                    nodes[connection.nodes[1]].connections--;
+                    connections.splice(i, 1);
+                }
+            }
+            
+            // Form new connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    // Skip if already connected
+                    const alreadyConnected = connections.some(conn => 
+                        (conn.nodes[0] === i && conn.nodes[1] === j) || 
+                        (conn.nodes[0] === j && conn.nodes[1] === i)
+                    );
+                    
+                    if (!alreadyConnected && 
+                        nodes[i].connections < nodes[i].maxConnections && 
+                        nodes[j].connections < nodes[j].maxConnections) {
+                        
+                        const compatibility = calculateResonanceCompatibility(nodes[i], nodes[j]);
+                        if (compatibility > params.connectionThreshold) {
+                            connections.push({
+                                nodes: [i, j],
+                                strength: compatibility,
+                                phase: Math.random() * Math.PI * 2,
+                                age: 0,
+                                tension: 0,
+                                color: `rgba(255, 255, 255, ${compatibility * 0.7})`
+                            });
+                            nodes[i].connections++;
+                            nodes[j].connections++;
+                        }
+                    }
+                }
+            }
+        }
+        // Render the system
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw connections
+            if (params.showConnections) {
+                for (const connection of connections) {
+                    const nodeA = nodes[connection.nodes[0]];
+                    const nodeB = nodes[connection.nodes[1]];
+                    
+                    ctx.strokeStyle = connection.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(nodeA.position.x * canvas.width, nodeA.position.y * canvas.height);
+                    ctx.lineTo(nodeB.position.x * canvas.width, nodeB.position.y * canvas.height);
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw nodes
+            for (const node of nodes) {
+                ctx.fillStyle = node.color;
+                ctx.beginPath();
+                ctx.arc(node.position.x * canvas.width, node.position.y * canvas.height, params.nodeSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw energy pulse
+                if (params.showEnergyPulses && node.energy > 0.05) {
+                    const pulseSize = node.energy * params.nodeSize * 2;
+                    const pulseAlpha = Math.min(1, node.energy / 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${pulseAlpha})`;
+                    ctx.beginPath();
+                    ctx.arc(node.position.x * canvas.width, node.position.y * canvas.height, pulseSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Draw history trail
+                if (node.history.length > 1) {
+                    const trailAlpha = Math.min(1, node.entropy / 2);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${trailAlpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    
+                    for (let k = 0; k < node.history.length - 1; k++) {
+                        const p1 = node.history[k];
+                        const p2 = node.history[k + 1];
+                        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+                        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+                        ctx.stroke();
+                    }
+                }
+                
+                // Draw tooltip on hover
+                if (hoverNode === node) {
+                    tooltip.innerHTML = `
+                        <strong>Node ID:</strong> ${node.id}<br>
+                        <strong>Entropy:</strong> ${node.entropy.toFixed(2)}<br>
+                        <strong>Energy:</strong> ${node.energy.toFixed(2)}<br>
+                        <strong>Phase:</strong> ${node.phase.toFixed(2)}<br>
+                        <strong>Frequency:</strong> ${node.frequency.toFixed(2)}<br>
+                        <strong>Amplitude:</strong> ${node.amplitude.toFixed(2)}<br>
+                    `;
+                    tooltip.style.left = `${node.position.x * canvas.width}px`;
+                    tooltip.style.top = `${node.position.y * canvas.height}px`;
+                    tooltip.classList.remove('hidden');
+                } else {
+                    tooltip.classList.add('hidden');
+                }
+            }
+        }
+        // Handle mouse events
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) / canvas.width;
+            const mouseY = (e.clientY - rect.top) / canvas.height;
+            
+            hoverNode = nodes.find(node => {
+                const dx = node.position.x - mouseX;
+                const dy = node.position.y - mouseY;
+                return Math.sqrt(dx * dx + dy * dy) < params.nodeSize / canvas.width;
+            });
+            
+            render();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) / canvas.width;
+            const mouseY = (e.clientY - rect.top) / canvas.height;
+            
+            selectedNode = nodes.find(node => {
+                const dx = node.position.x - mouseX;
+                const dy = node.position.y - mouseY;
+                return Math.sqrt(dx * dx + dy * dy) < params.nodeSize / canvas.width;
+            });
+            
+            if (selectedNode) {
+                console.log('Selected Node:', selectedNode);
+            }
+        });
+        
+        
+// Get header buttons
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Event listener for Pause/Resume button
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Resume
+                `;
+                cancelAnimationFrame(animationId);
+            } else {
+                pauseBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Pause
+                `;
+                lastTime = performance.now(); 
+                animationId = requestAnimationFrame(animate);
+            }
+        });
+
+        // Event listener for Reset button
+        resetBtn.addEventListener('click', () => {
+            cancelAnimationFrame(animationId); 
+            initializeSystem(); 
+            render(); // Render the initial state immediately
+
+            isPaused = false; 
+            pauseBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Pause
+            `;
+            lastTime = performance.now(); 
+            animationId = requestAnimationFrame(animate); 
+        });
+        // Initialize Tweakpane
+        const pane = new Tweakpane.Pane({
+            title: 'Simulation Controls'
+        });
+        
+        pane.addInput(params, 'numNodes', { min: 5, max: 50, step: 1 }).on('change', initializeSystem);
+        pane.addInput(params, 'simulationSpeed', { min: 0.1, max: 10, step: 0.1 }).on('change', () => {
+            if (!isPaused) {
+                cancelAnimationFrame(animationId);
+                animationId = requestAnimationFrame(animate);
+            }
+        });
+        pane.addButton({ title: 'Reset' }).on('click', initializeSystem);
+        
+        // Animation loop
+        function animate(timestamp) {
+            if (!isPaused) {
+                const deltaTime = (timestamp - lastTime) * params.simulationSpeed;
+                updateSystem(deltaTime);
+                render();
+                
+                lastTime = timestamp;
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // Start the simulation
+        resizeCanvas();
+        initializeSystem();
+        isPaused = false;
+        lastTime = performance.now();
+        animationId = requestAnimationFrame(animate);
+
+
+
+
+</script>
+</html>

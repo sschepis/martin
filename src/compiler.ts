@@ -24,7 +24,7 @@ export class LocalSceneCompiler {
     fs.writeFileSync(destPath, Buffer.from(buffer));
   }
 
-  async compile(clips: SceneClip[], outputPath: string): Promise<string> {
+  async compile(clips: SceneClip[], outputPath: string, options: {width?: number, height?: number} = {}): Promise<string> {
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'martin-scene-'));
     console.log(`[LocalCompiler] Working directory: ${workDir}`);
 
@@ -43,10 +43,16 @@ export class LocalSceneCompiler {
         let finalClipPath = rawVideoPath;
 
         // If there's audio, merge it with the video
-        if (clip.audioUrlOrPath) {
-          const audioExt = clip.audioUrlOrPath.split('.').pop()?.split('?')[0] || 'mp3';
+        let audioPathToUse = clip.audioUrlOrPath;
+        if (!audioPathToUse) {
+          audioPathToUse = path.join(workDir, `silent_audio_${i}.mp3`);
+          await execAsync(`ffmpeg -y -f lavfi -i anullsrc=r=48000:cl=stereo -t 60 -q:a 9 -acodec libmp3lame "${audioPathToUse}"`);
+        }
+        
+        if (audioPathToUse) {
+          const audioExt = audioPathToUse.split('.').pop()?.split('?')[0] || 'mp3';
           const audioPath = path.join(workDir, `audio_${i}.${audioExt}`);
-          await this.downloadFile(clip.audioUrlOrPath, audioPath);
+          if (audioPathToUse !== clip.audioUrlOrPath) { fs.copyFileSync(audioPathToUse, audioPath); } else { await this.downloadFile(audioPathToUse, audioPath); }
 
           const mergedPath = path.join(workDir, `merged_${i}.mp4`);
           // Merge video and audio, truncating audio to video length or vice versa
@@ -58,7 +64,7 @@ export class LocalSceneCompiler {
 
         // Standardize the clip format for concatenation (1080p, 24fps, standard audio)
         const standardizedPath = path.join(workDir, `std_${i}.mp4`);
-        const stdCmd = `ffmpeg -y -i "${finalClipPath}" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24" -c:v libx264 -preset fast -crf 22 -c:a aac -ar 48000 -ac 2 "${standardizedPath}"`;
+        const stdCmd = `ffmpeg -y -i "${finalClipPath}" -vf "scale=${options.width || 1920}:${options.height || 1080}:force_original_aspect_ratio=decrease,pad=${options.width || 1920}:${options.height || 1080}:(ow-iw)/2:(oh-ih)/2,fps=24" -c:v libx264 -preset fast -crf 22 -c:a aac -ar 48000 -ac 2 "${standardizedPath}"`;
         await execAsync(stdCmd);
         
         processedClips.push(standardizedPath);

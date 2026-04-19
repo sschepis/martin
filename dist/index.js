@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Martin = void 0;
+exports.Martin = exports.LocalSceneCompiler = void 0;
 exports.createDirector = createDirector;
 const llm_1 = require("./llm");
 const runway_gen3_1 = require("./adapters/runway-gen3");
@@ -23,6 +23,8 @@ const sora_1 = require("./adapters/sora");
 const weryai_1 = require("./adapters/weryai");
 const shotstack_1 = require("./adapters/shotstack");
 __exportStar(require("./types"), exports);
+var compiler_1 = require("./compiler");
+Object.defineProperty(exports, "LocalSceneCompiler", { enumerable: true, get: function () { return compiler_1.LocalSceneCompiler; } });
 class Martin {
     config;
     llmEngine;
