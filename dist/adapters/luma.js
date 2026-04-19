@@ -4,12 +4,17 @@ exports.LumaDreamMachineAdapter = void 0;
 class LumaDreamMachineAdapter {
     name = 'luma';
     generatePrompt(manifest, shot) {
-        // Luma tends to prefer natural language storytelling with technical details woven in.
-        return `A cinematic shot featuring ${shot.subject || 'the main subject'} in ${shot.environment || 'the scene'}. ` +
-            `${shot.description} ` +
-            `The camera features a ${shot.camera.movement} from a ${shot.camera.angle} angle, shot on a ${shot.camera.lens || 'standard lens'}. ` +
-            `The lighting is ${shot.lighting.style} with ${shot.lighting.contrast || 'natural'} contrast. ` +
-            `Overall mood is ${manifest.mood} with a color palette of ${manifest.colorPalette.join(', ')}.`;
+        // Luma Dream Machine generates highly realistic motion when given visceral, descriptive language 
+        // that blends character action with camera physics.
+        const cameraAction = shot.camera.movement.toLowerCase().includes('static')
+            ? `The camera holds a steady, ${shot.camera.angle.toLowerCase()} angle`
+            : `The camera executes a fluid ${shot.camera.movement.toLowerCase()} from a ${shot.camera.angle.toLowerCase()} angle`;
+        return `Cinematic sequence: ${shot.description} ` +
+            `Focus on ${shot.subject || 'the main subject'} situated in ${shot.environment || 'the scene'}. ` +
+            `${cameraAction}, utilizing a ${shot.camera.lens || 'standard cinematic lens'}. ` +
+            `The scene is illuminated by ${shot.lighting.style.toLowerCase()}, casting ${shot.lighting.contrast || 'natural'} contrast. ` +
+            `The visual tone is deeply ${manifest.mood.toLowerCase()}, dominated by ${manifest.colorPalette.join(', ')} color grading. ` +
+            `High fidelity, photorealistic textures, 4k resolution.`;
     }
 }
 exports.LumaDreamMachineAdapter = LumaDreamMachineAdapter;
