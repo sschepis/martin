@@ -22,9 +22,12 @@ const luma_1 = require("./adapters/luma");
 const sora_1 = require("./adapters/sora");
 const weryai_1 = require("./adapters/weryai");
 const shotstack_1 = require("./adapters/shotstack");
+const weryai_2 = require("./engines/weryai");
+const elevenlabs_1 = require("./engines/elevenlabs");
+const compiler_1 = require("./compiler");
 __exportStar(require("./types"), exports);
-var compiler_1 = require("./compiler");
-Object.defineProperty(exports, "LocalSceneCompiler", { enumerable: true, get: function () { return compiler_1.LocalSceneCompiler; } });
+var compiler_2 = require("./compiler");
+Object.defineProperty(exports, "LocalSceneCompiler", { enumerable: true, get: function () { return compiler_2.LocalSceneCompiler; } });
 class Martin {
     config;
     llmEngine;
@@ -60,6 +63,44 @@ class Martin {
     /**
      * Exports the manifest using a specific adapter.
      */
+    /**
+     * Produces the full video by executing the pipeline.
+     */
+    async produce(manifest, options = {}) {
+        const weryai = new weryai_2.WeryAIEngine();
+        const elevenlabs = new elevenlabs_1.ElevenLabsEngine();
+        const compiler = new compiler_1.LocalSceneCompiler();
+        console.log('\n🎬 Starting Production Execution...');
+        const weryaiAdapter = this.adapters.get('weryai');
+        const clips = [];
+        for (let i = 0; i < manifest.shots.length; i++) {
+            const shot = manifest.shots[i];
+            console.log(`\n--- Processing Shot ${i + 1}/${manifest.shots.length} ---`);
+            let imageUrl;
+            if (options.useImageToVideo && options.imageEngine === 'weryai') {
+                const imagePrompt = weryaiAdapter.generateImagePrompt ? weryaiAdapter.generateImagePrompt(manifest, shot) : weryaiAdapter.generatePrompt(manifest, shot);
+                console.log(`[Martin] Generating reference image...`);
+                imageUrl = await weryai.generateImage(imagePrompt, manifest.aspectRatio);
+            }
+            const videoPrompt = weryaiAdapter.generatePrompt(manifest, shot);
+            console.log(`[Martin] Generating video...`);
+            const videoUrl = await weryai.generateVideo(videoPrompt, manifest.aspectRatio, imageUrl);
+            let audioUrlOrPath;
+            if (options.audioEngine === 'elevenlabs' && shot.narration && shot.narration.trim().length > 0) {
+                console.log(`[Martin] Generating audio narration...`);
+                audioUrlOrPath = await elevenlabs.generateAudio(shot.narration);
+            }
+            clips.push({
+                videoUrlOrPath: videoUrl,
+                audioUrlOrPath,
+                duration: 5.0
+            });
+        }
+        console.log('\n🎬 Compiling Final Scene...');
+        const outputPath = await compiler.compile(clips, 'final_output.mp4', options.resolution);
+        console.log(`\n🎉 Production Complete! Final video saved to: ${outputPath}`);
+        return outputPath;
+    }
     exportManifest(manifest, adapterName) {
         const adapter = this.adapters.get(adapterName.toLowerCase());
         if (!adapter) {

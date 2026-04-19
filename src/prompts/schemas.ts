@@ -36,7 +36,8 @@ export const SPM_JSON_SCHEMA = {
             },
             required: ['style']
           },
-          duration: { type: 'string' }
+          duration: { type: 'string' },
+          narration: { type: 'string', description: 'The exact voiceover or dialogue text intended to play during this shot, if any. Leave empty if silent.' }
         },
         required: ['id', 'description', 'camera', 'lighting']
       }

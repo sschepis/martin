@@ -1,4 +1,5 @@
 import { MartinConfig, ProductionManifest, Adapter } from './types';
+import { ProduceOptions } from './types';
 export * from './types';
 export { LocalSceneCompiler, SceneClip } from './compiler';
 export declare class Martin {
@@ -22,6 +23,10 @@ export declare class Martin {
     /**
      * Exports the manifest using a specific adapter.
      */
+    /**
+     * Produces the full video by executing the pipeline.
+     */
+    produce(manifest: ProductionManifest, options?: ProduceOptions): Promise<string>;
     exportManifest(manifest: ProductionManifest, adapterName: string): string[];
 }
 export declare function createDirector(config?: MartinConfig): Martin;

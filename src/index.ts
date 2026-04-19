@@ -5,6 +5,10 @@ import { LumaDreamMachineAdapter } from './adapters/luma';
 import { SoraAdapter } from './adapters/sora';
 import { WeryAIAdapter } from './adapters/weryai';
 import { ShotstackAdapter } from './adapters/shotstack';
+import { WeryAIEngine } from './engines/weryai';
+import { ElevenLabsEngine } from './engines/elevenlabs';
+import { ProduceOptions } from './types';
+import { LocalSceneCompiler, SceneClip } from './compiler';
 
 export * from './types';
 export { LocalSceneCompiler, SceneClip } from './compiler';
@@ -50,6 +54,55 @@ export class Martin {
   /**
    * Exports the manifest using a specific adapter.
    */
+
+  /**
+   * Produces the full video by executing the pipeline.
+   */
+  async produce(manifest: ProductionManifest, options: ProduceOptions = {}): Promise<string> {
+    const weryai = new WeryAIEngine();
+    const elevenlabs = new ElevenLabsEngine();
+    const compiler = new LocalSceneCompiler();
+    
+    console.log('\n🎬 Starting Production Execution...');
+    
+    const weryaiAdapter = this.adapters.get('weryai')!;
+    const clips: SceneClip[] = [];
+
+    for (let i = 0; i < manifest.shots.length; i++) {
+      const shot = manifest.shots[i];
+      console.log(`\n--- Processing Shot ${i + 1}/${manifest.shots.length} ---`);
+      
+      let imageUrl: string | undefined;
+      
+      if (options.useImageToVideo && options.imageEngine === 'weryai') {
+        const imagePrompt = weryaiAdapter.generateImagePrompt ? weryaiAdapter.generateImagePrompt(manifest, shot) : weryaiAdapter.generatePrompt(manifest, shot);
+        console.log(`[Martin] Generating reference image...`);
+        imageUrl = await weryai.generateImage(imagePrompt, manifest.aspectRatio);
+      }
+
+      const videoPrompt = weryaiAdapter.generatePrompt(manifest, shot);
+      console.log(`[Martin] Generating video...`);
+      const videoUrl = await weryai.generateVideo(videoPrompt, manifest.aspectRatio, imageUrl);
+      
+      let audioUrlOrPath: string | undefined;
+      if (options.audioEngine === 'elevenlabs' && shot.narration && shot.narration.trim().length > 0) {
+        console.log(`[Martin] Generating audio narration...`);
+        audioUrlOrPath = await elevenlabs.generateAudio(shot.narration);
+      }
+      
+      clips.push({
+        videoUrlOrPath: videoUrl,
+        audioUrlOrPath,
+        duration: 5.0
+      });
+    }
+
+    console.log('\n🎬 Compiling Final Scene...');
+    const outputPath = await compiler.compile(clips, 'final_output.mp4', options.resolution);
+    console.log(`\n🎉 Production Complete! Final video saved to: ${outputPath}`);
+    return outputPath;
+  }
+
   exportManifest(manifest: ProductionManifest, adapterName: string): string[] {
     const adapter = this.adapters.get(adapterName.toLowerCase());
     if (!adapter) {

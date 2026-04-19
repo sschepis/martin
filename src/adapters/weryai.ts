@@ -18,4 +18,17 @@ export class WeryAIAdapter implements Adapter {
            `Color grading highlights ${manifest.colorPalette.join(', ')}. ` +
            `Masterpiece, 8k resolution, highly detailed, professional cinematography.`;
   }
+
+  generateImagePrompt(manifest: ProductionManifest, shot: Shot): string {
+    const lensDesc = shot.camera.lens ? `shot on a ${shot.camera.lens} lens` : 'cinematic framing';
+    const lightingDesc = `${shot.lighting.style} lighting${shot.lighting.colorTemp ? ` at ${shot.lighting.colorTemp}` : ''}${shot.lighting.contrast ? `, ${shot.lighting.contrast}` : ''}`;
+
+    return `Photorealistic, high-quality cinematic photograph. ${shot.description} ` +
+           `The scene features ${shot.subject || 'the main subject'} in ${shot.environment || 'a detailed environment'}. ` +
+           `Visually, the composition is from a ${shot.camera.angle} angle, ${lensDesc}. ` +
+           `The atmosphere is defined by ${lightingDesc}, creating a deeply ${manifest.mood} mood. ` +
+           `Color grading highlights ${manifest.colorPalette.join(', ')}. ` +
+           `Masterpiece, 8k resolution, highly detailed, professional photography.`;
+  }
 }
+

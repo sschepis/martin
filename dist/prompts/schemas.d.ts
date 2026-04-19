@@ -70,6 +70,10 @@ export declare const SPM_JSON_SCHEMA: {
                     duration: {
                         type: string;
                     };
+                    narration: {
+                        type: string;
+                        description: string;
+                    };
                 };
                 required: string[];
             };

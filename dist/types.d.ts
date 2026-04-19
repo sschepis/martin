@@ -22,6 +22,7 @@ export interface Shot {
     duration?: string;
     subject?: string;
     environment?: string;
+    narration?: string;
 }
 export interface ProductionManifest {
     title: string;
@@ -33,4 +34,15 @@ export interface ProductionManifest {
 export interface Adapter {
     name: string;
     generatePrompt(manifest: ProductionManifest, shot: Shot): string;
+    generateImagePrompt?(manifest: ProductionManifest, shot: Shot): string;
+}
+export interface ProduceOptions {
+    videoEngine?: 'weryai' | 'mock';
+    audioEngine?: 'elevenlabs' | 'mock';
+    imageEngine?: 'weryai' | 'mock';
+    useImageToVideo?: boolean;
+    resolution?: {
+        width: number;
+        height: number;
+    };
 }
