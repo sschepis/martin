@@ -7,6 +7,7 @@ import { WeryAIAdapter } from './adapters/weryai';
 import { ShotstackAdapter } from './adapters/shotstack';
 
 export * from './types';
+export { LocalSceneCompiler, SceneClip } from './compiler';
 
 export class Martin {
   private config: MartinConfig;

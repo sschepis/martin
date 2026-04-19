@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Martin } from '../src/index';
+import { Martin, LocalSceneCompiler } from '../src/index';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -184,6 +184,17 @@ async function main() {
   
   const finalVideoUrl = await compileTimeline(timelineClips);
 
+  
+  console.log('\n🎬 Compiling Local Scene with FFMPEG...');
+  const compiler = new LocalSceneCompiler();
+  const sceneClips = videoUrls.map((url, i) => ({
+    videoUrlOrPath: url || 'https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/earth.mp4',
+    audioUrlOrPath: audioUrls[i] || undefined,
+    duration: 5.0
+  }));
+  
+  const finalLocalVideo = await compiler.compile(sceneClips, path.join(process.cwd(), 'final_scene.mp4'));
+  console.log('Final Local Video:', finalLocalVideo);
   console.log('\n🎉 Production Complete!');
   console.log('Videos:', videoUrls);
   console.log('Final Video Render ID:', finalVideoUrl);
