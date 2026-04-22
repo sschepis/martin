@@ -1,34 +1,46 @@
 # 🎬 Martin: The AI Media Director
 
-**`martin`** is an LLM-driven media director implemented as a framework-agnostic NPM package. It acts as an orchestration layer between human creative intent and AI video generation tools. It translates high-level scripts into a structured **Shot Production Manifest (SPM)**, providing precise, cinematic technical descriptions, and then **executes the entire production pipeline** (Video, Audio, and FFMPEG compositing) automatically.
+**`martin`** is an LLM-driven media director implemented as a framework-agnostic NPM package. It acts as an orchestration layer between human creative intent and AI video generation tools. It translates high-level scripts into a structured **Shot Production Manifest (SPM)**, providing precise, cinematic technical descriptions, and then **executes the entire production pipeline** (Video, Audio, and compositing) automatically.
 
 ## ✨ Features
 
 - 🧠 **The Directorial Brain (FST/SDS):** Built-in knowledge of Film Shot Techniques (FST) and Scene Design Systems (SDS) compiled directly into the LLM system prompt.
-- 🔌 **Adapter Pattern:** Future-proof architecture. Outputs prompts optimized for Runway Gen-3, Luma Dream Machine, Sora, WeryAI, and more.
-- ⚙️ **Full Pipeline Execution:** Doesn't just generate prompts—it natively hooks into WeryAI (for video/image generation) and ElevenLabs (for voiceovers).
-- 🎞️ **Local Scene Compiler:** Bypasses expensive cloud renderers. Uses local `ffmpeg` to automatically download assets, sync audio to video clips, standardize framerates/resolutions, and stitch everything into a seamless final MP4.
+- 🔌 **Adapter Pattern:** Future-proof architecture. Outputs prompts optimized for Runway Gen-3, Luma Dream Machine, Sora, WeryAI, Kling, Fal, and more.
+- ⚙️ **Full Pipeline Execution:** Doesn't just generate prompts—it natively hooks into Video Engines (Runway, Luma, Kling, Fal, WeryAI) and Audio Engines (ElevenLabs) for voiceovers.
+- 🎞️ **Cloud Compositing:** Uses the `ShotstackCompiler` to automatically stitch everything into a seamless final MP4 with synced audio and background music.
 - 📱 **Format Agnostic:** Easily target 16:9 cinematic formats, 21:9 ultrawide, or 9:16 vertical TikTok/Reels formats.
+- 🦕 **Deno Support:** Fully compatible with ESM and Deno.
 
 ## 📦 Installation
 
 ```bash
 npm install @sschepis/martin
 ```
-*(Note: You must have `ffmpeg` installed on your system to use the `LocalSceneCompiler`)*
+*(Or use `deno add npm:@sschepis/martin`)*
 
 ## 🚀 Quick Start
 
 Set up your `.env` file with your API keys:
 ```env
+# Required for Video Generation (pick your preferred engine)
+LUMA_API_KEY=your_luma_key
+RUNWAY_API_KEY=your_runway_key
+KLING_API_KEY=your_kling_key
+FAL_KEY=your_fal_key
 WERYAI_API_KEY=your_weryai_key
+
+# Required for Audio & Compositing
 ELEVENLABS_API_KEY=your_elevenlabs_key
-LMSTUDIO_URL=http://127.0.0.1:1234/v1  # Or OpenAI URL
+SHOTSTACK_API_KEY=your_shotstack_key
+
+# Required for the LLM Director
+LMSTUDIO_URL=http://127.0.0.1:1234/v1  # Or use OpenAI URL
+OPENAI_API_KEY=your_openai_key
 ```
 
 ### End-to-End Production
 
-Here is how you can use `martin` to plan, generate, and compile a complete TikTok ad from a simple script:
+Here is how you can use `martin` to plan, generate, and compile a complete video from a simple script:
 
 ```typescript
 import 'dotenv/config';
@@ -55,19 +67,29 @@ async function main() {
     aspectRatio: '9:16'
   });
 
-  // 2. Produce the video (Calls WeryAI, ElevenLabs, and FFMPEG)
-  const finalVideoPath = await director.produce(manifest, {
-    videoEngine: 'weryai',
+  // 2. Produce the video (Calls Video APIs, ElevenLabs, and Shotstack)
+  const finalVideoUrl = await director.produce(manifest, {
+    videoEngine: 'luma', // 'luma', 'runway', 'kling', 'fal', 'weryai'
     audioEngine: 'elevenlabs',
     useImageToVideo: false, // Set to true to generate a consistent base image first
     resolution: { width: 1080, height: 1920 }
   });
 
-  console.log(`🎉 Production Complete! Final Video: ${finalVideoPath}`);
+  console.log(`🎉 Production Complete! Final Video URL: ${finalVideoUrl}`);
 }
 
 main();
 ```
+
+## 📚 Documentation
+
+Detailed documentation is available in the `docs/` directory:
+
+- [API Reference](./docs/api.md)
+- [Shot Production Manifest](./docs/manifest.md)
+- [Adapters](./docs/adapters.md)
+- [Execution Engines](./docs/engines.md)
+- [The Compiler](./docs/compiler.md)
 
 ## 🏗️ Architecture
 
@@ -78,12 +100,12 @@ The system follows a pipeline-based architecture composed of four distinct phase
 2. **Shot Deconstruction**
    Assigns specific, real-world filmmaking attributes (Camera Movement, Lighting, Lens Choice) to each shot.
 3. **Generator Translation Layer (Adapters)**
-   Translates the abstract Shot Production Manifest into vendor-specific prompts (Runway, Luma, Sora, WeryAI).
+   Translates the abstract Shot Production Manifest into vendor-specific prompts.
 4. **Execution & Composition (Engines & Compiler)**
-   Calls the respective APIs to generate media, downloads the assets, and uses `ffmpeg` to composite the timeline with synced audio.
+   Calls the respective APIs to generate media, uploads the assets, and uses `Shotstack` to composite the timeline with synced audio.
 
 ## 🛠️ Extensibility
 
 - **Modular LLM Providers:** Simple interfaces to swap LLM backends.
 - **Adapter Registry:** Register custom adapters for new video generation models as they emerge.
-- **Pluggable Engines:** Easily add new execution engines (e.g., Midjourney for images, Kling for video, PlayHT for audio).
+- **Pluggable Engines:** Easily add new execution engines.
