@@ -1,8 +1,13 @@
 import { MartinConfig, ProductionManifest, Adapter } from './types.ts';
 import { ProduceOptions } from './types.ts';
 export * from './types.ts';
-export { LocalSceneCompiler } from './compiler.ts';
+export { ShotstackCompiler } from './compiler.ts';
 export type { SceneClip } from './compiler.ts';
+export { TimelineBuilder } from './timeline-builder.ts';
+export { generateReferenceImages } from './reference-images.ts';
+export type { ReferenceImageSet } from './reference-images.ts';
+export { getTempoDefaults } from './tempo.ts';
+export { resolveClipDuration, estimateNarrationDuration } from './audio-timing.ts';
 export declare class Martin {
     private config;
     private llmEngine;

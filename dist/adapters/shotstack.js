@@ -1,22 +1,26 @@
+import { resolveSubject, resolveEnvironmentDesc } from "./prompt-utils.js";
 export class ShotstackAdapter {
     name = 'shotstack';
-    generatePrompt(manifest, shot) {
-        // Shotstack is primarily a video editing/compositing API rather than a generative AI.
-        // However, if using it to generate assets or define a timeline, we can construct 
-        // a JSON representation or a specific descriptive format.
-        // For now, we return a structured description of the shot intended for a timeline.
-        return JSON.stringify({
+    generatePrompt(manifest, shot, _context) {
+        const output = {
             asset: {
                 type: 'video',
                 description: shot.description,
-                subject: shot.subject || 'none',
-                environment: shot.environment || 'none'
+                subject: resolveSubject(manifest, shot),
+                environment: resolveEnvironmentDesc(manifest, shot)
             },
             length: shot.duration ? parseFloat(shot.duration) : 5.0,
             transition: {
                 in: 'fade',
                 out: 'fade'
             }
-        }, null, 2);
+        };
+        if (manifest.negativePrompt)
+            output.negativePrompt = manifest.negativePrompt;
+        if (manifest.styleGuards?.length)
+            output.styleGuards = manifest.styleGuards;
+        if (manifest.visualStyle)
+            output.visualStyle = manifest.visualStyle;
+        return JSON.stringify(output, null, 2);
     }
 }

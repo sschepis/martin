@@ -1,4 +1,5 @@
 import { MartinConfig, ProductionManifest } from './types.ts';
+import type { SceneClip } from './compiler.ts';
 export declare class LLMEngine {
     private config;
     constructor(config: MartinConfig);
@@ -7,9 +8,7 @@ export declare class LLMEngine {
      * the Scene Design System, Film Shot Techniques, and JSON schema.
      */
     generateSystemPrompt(): string;
-    /**
-     * Simulates passing the script to an LLM with directorial schemas
-     * and returning a structured ProductionManifest.
-     */
+    private callLLM;
     analyzeScript(script: string, options?: any): Promise<ProductionManifest>;
+    generateShotstackComposition(manifest: ProductionManifest, clips: SceneClip[]): Promise<any>;
 }

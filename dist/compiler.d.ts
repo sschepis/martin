@@ -1,12 +1,15 @@
+import { MartinConfig } from './types.ts';
 export interface SceneClip {
     videoUrlOrPath: string;
     audioUrlOrPath?: string;
     duration?: number;
+    narrationText?: string;
 }
-export declare class LocalSceneCompiler {
-    private downloadFile;
-    compile(clips: SceneClip[], outputPath: string, options?: {
-        width?: number;
-        height?: number;
-    }): Promise<string>;
+export declare class ShotstackCompiler {
+    private apiKey;
+    private apiUrl;
+    constructor(config?: MartinConfig);
+    private sanitize;
+    compile(composition: any): Promise<string>;
+    private pollRenderStatus;
 }

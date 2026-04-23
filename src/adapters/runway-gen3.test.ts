@@ -37,7 +37,7 @@ describe('RunwayGen3Adapter', () => {
     assert.ok(prompt.includes('50mm'));
     assert.ok(prompt.includes('neon'));
     assert.ok(prompt.includes('dark'));
-    assert.ok(prompt.includes('red and black'));
+    assert.ok(prompt.includes('red, black'));
     assert.ok(prompt.includes('--ar 169'));
     assert.ok(prompt.includes(' | '));
   });
@@ -60,8 +60,8 @@ describe('RunwayGen3Adapter', () => {
 
     const prompt = adapter.generatePrompt(manifest, shot);
 
-    assert.ok(prompt.includes('Subject: Not specified'));
-    assert.ok(prompt.includes('Setting: Not specified'));
+    assert.ok(prompt.includes('Subject: the main subject'));
+    assert.ok(prompt.includes('Setting: a detailed environment'));
     assert.ok(prompt.includes('A bright room'));
     assert.ok(prompt.includes('natural'));
     assert.ok(prompt.includes('bright'));

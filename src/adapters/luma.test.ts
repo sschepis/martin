@@ -60,7 +60,7 @@ describe('LumaDreamMachineAdapter', () => {
 
     assert.ok(prompt.includes('A simple scene.'));
     assert.ok(prompt.includes('the main subject'));
-    assert.ok(prompt.includes('the scene'));
+    assert.ok(prompt.includes('a detailed environment'));
     assert.ok(prompt.includes('eye-level'));
     assert.ok(prompt.includes('flat'));
     assert.ok(prompt.includes('dreamy'));

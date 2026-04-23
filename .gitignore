@@ -1,6 +1,15 @@
 .env
 
 *.mp3
+*.mp4
+*.jpg
+*.png
+*.log
+assets/
+storyboard-*.html
 node_modules/
+dist/
 
 .clodcode/
+.martin-cache/
+.obotovs/

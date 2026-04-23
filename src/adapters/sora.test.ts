@@ -52,7 +52,7 @@ describe('SoraAdapter', () => {
 
     const prompt = adapter.generatePrompt(manifest, shot);
     
-    const expected = 'A highly detailed, photorealistic video of A quiet forest. The subject is not explicitly defined, situated in an undefined environment. The camera executes a static from a eye-level angle, simulating a standard cinematic lens. The lighting is soft, creating a calm atmosphere. The dominant colors are Green.';
+    const expected = 'A highly detailed, photorealistic video of A quiet forest. The subject is the main subject, situated in a detailed environment. The camera executes a static from a eye-level angle, simulating a standard cinematic lens. The lighting is soft, creating a calm atmosphere. The dominant colors are Green.';
     assert.strictEqual(prompt, expected);
   });
 });

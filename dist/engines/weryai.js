@@ -1,4 +1,5 @@
 export class WeryAIEngine {
+    name = 'weryai';
     apiKey;
     constructor() {
         this.apiKey = process.env.WERYAI_API_KEY || '';

@@ -1,5 +1,5 @@
-import { Adapter, ProductionManifest, Shot } from '../types.ts';
+import { Adapter, ProductionManifest, Shot, ShotContext } from '../types.ts';
 export declare class SoraAdapter implements Adapter {
     name: string;
-    generatePrompt(manifest: ProductionManifest, shot: Shot): string;
+    generatePrompt(manifest: ProductionManifest, shot: Shot, context?: ShotContext): string;
 }

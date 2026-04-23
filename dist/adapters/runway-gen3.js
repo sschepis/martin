@@ -1,19 +1,28 @@
+import { resolveStyleGuards, resolveNegativePrompt, resolveSubject, resolveEnvironmentDesc, resolveColorGrading, buildContextPrefix, resolveCameraMovement } from "./prompt-utils.js";
 export class RunwayGen3Adapter {
     name = 'runway-gen3';
-    generatePrompt(manifest, shot) {
-        // Runway Gen-3 Alpha/Turbo responds extremely well to explicit structural keywords, 
-        // motion descriptions at the beginning of the prompt, and technical camera terminology.
-        const motion = shot.camera.movement !== 'Static' ? `Dynamic motion: ${shot.camera.movement}. ` : 'Static camera. ';
+    generatePrompt(manifest, shot, context) {
+        const movement = resolveCameraMovement(shot, context);
+        const motion = movement.toLowerCase().includes('static') ? 'Static camera. ' : `Dynamic motion: ${movement}. `;
         const lighting = [shot.lighting.style, shot.lighting.colorTemp, shot.lighting.contrast].filter(Boolean).join(', ');
+        const subject = resolveSubject(manifest, shot);
+        const environment = resolveEnvironmentDesc(manifest, shot);
+        const colorGrading = resolveColorGrading(manifest);
+        const guards = resolveStyleGuards(manifest);
+        const aesthetics = [manifest.mood, `${colorGrading} tones`, ...guards].join(', ');
+        const contextPrefix = buildContextPrefix(manifest, shot, context);
         const parts = [
-            `${motion}${shot.description}`,
-            `Subject: ${shot.subject || 'Not specified'}`,
-            `Setting: ${shot.environment || 'Not specified'}`,
+            `${contextPrefix}${motion}${shot.description}`,
+            `Subject: ${subject}`,
+            `Setting: ${environment}`,
             `Cinematography: ${shot.camera.angle}, ${shot.camera.lens || '35mm prime lens'}`,
             `Lighting: ${lighting}`,
-            `Aesthetics: ${manifest.mood}, ${manifest.colorPalette.join(' and ')} tones`,
+            `Aesthetics: ${aesthetics}`,
             `--ar ${manifest.aspectRatio.replace(':', '')}`
         ];
+        const neg = resolveNegativePrompt(manifest);
+        if (neg)
+            parts.push(`Negative: ${neg}`);
         return parts.filter(p => p && p.trim() !== '').join(' | ');
     }
 }

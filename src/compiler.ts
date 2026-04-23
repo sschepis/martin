@@ -1,90 +1,128 @@
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
-
-const execAsync = promisify(exec);
+import { MartinConfig } from './types.ts';
+import {
+  SHOTSTACK_EFFECTS, SHOTSTACK_FILTERS, SHOTSTACK_TRANSITIONS, SHOTSTACK_RESOLUTIONS
+} from './prompts/schemas.ts';
 
 export interface SceneClip {
   videoUrlOrPath: string;
   audioUrlOrPath?: string;
+  sfxUrlOrPath?: string;
   duration?: number;
+  narrationText?: string;
 }
 
-export class LocalSceneCompiler {
-  private async downloadFile(url: string, destPath: string): Promise<void> {
-    if (!url.startsWith('http')) {
-      fs.copyFileSync(url, destPath);
-      return;
-    }
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-    const buffer = await response.arrayBuffer();
-    fs.writeFileSync(destPath, new Uint8Array(buffer));
+const effectSet = new Set(SHOTSTACK_EFFECTS);
+const filterSet = new Set(SHOTSTACK_FILTERS);
+const transitionSet = new Set(SHOTSTACK_TRANSITIONS);
+const resolutionSet = new Set(SHOTSTACK_RESOLUTIONS);
+
+export class ShotstackCompiler {
+  private apiKey: string;
+  private apiUrl: string;
+
+  constructor(config: MartinConfig = {}) {
+    this.apiKey = config.shotstackApiKey || process.env.SHOTSTACK_API_KEY || '';
+    this.apiUrl = process.env.SHOTSTACK_API_URL || 'https://api.shotstack.io/edit/stage/render';
   }
 
-  async compile(clips: SceneClip[], outputPath: string, options: {width?: number, height?: number} = {}): Promise<string> {
-    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'martin-scene-'));
-    console.log(`[LocalCompiler] Working directory: ${workDir}`);
+  private sanitize(composition: any): any {
+    const sanitized = JSON.parse(JSON.stringify(composition));
 
-    try {
-      const processedClips: string[] = [];
+    if (sanitized.output?.resolution && !resolutionSet.has(sanitized.output.resolution)) {
+      sanitized.output.resolution = 'hd';
+    }
 
-      // Process each clip
-      for (let i = 0; i < clips.length; i++) {
-        const clip = clips[i];
-        console.log(`[LocalCompiler] Processing clip ${i + 1}/${clips.length}...`);
-        
-        const videoExt = clip.videoUrlOrPath.split('.').pop()?.split('?')[0] || 'mp4';
-        const rawVideoPath = path.join(workDir, `raw_video_${i}.${videoExt}`);
-        await this.downloadFile(clip.videoUrlOrPath, rawVideoPath);
+    const tracks = sanitized.timeline?.tracks || [];
+    for (let t = tracks.length - 1; t >= 0; t--) {
+      const clips = tracks[t].clips || [];
+      for (let c = clips.length - 1; c >= 0; c--) {
+        const clip = clips[c];
 
-        let finalClipPath = rawVideoPath;
-
-        // If there's audio, merge it with the video
-        let audioPathToUse = clip.audioUrlOrPath;
-        if (!audioPathToUse) {
-          audioPathToUse = path.join(workDir, `silent_audio_${i}.mp3`);
-          await execAsync(`ffmpeg -y -f lavfi -i anullsrc=r=48000:cl=stereo -t 60 -q:a 9 -acodec libmp3lame "${audioPathToUse}"`);
-        }
-        
-        if (audioPathToUse) {
-          const audioExt = audioPathToUse.split('.').pop()?.split('?')[0] || 'mp3';
-          const audioPath = path.join(workDir, `audio_${i}.${audioExt}`);
-          if (audioPathToUse !== clip.audioUrlOrPath) { fs.copyFileSync(audioPathToUse, audioPath); } else { await this.downloadFile(audioPathToUse, audioPath); }
-
-          const mergedPath = path.join(workDir, `merged_${i}.mp4`);
-          // Merge video and audio, truncating audio to video length or vice versa
-          // Using -shortest to stop encoding when the shortest stream ends
-          const cmd = `ffmpeg -y -i "${rawVideoPath}" -i "${audioPath}" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest "${mergedPath}"`;
-          await execAsync(cmd);
-          finalClipPath = mergedPath;
+        if (clip.asset?.src && !clip.asset.src.startsWith('http')) {
+          clips.splice(c, 1);
+          continue;
         }
 
-        // Standardize the clip format for concatenation (1080p, 24fps, standard audio)
-        const standardizedPath = path.join(workDir, `std_${i}.mp4`);
-        const stdCmd = `ffmpeg -y -i "${finalClipPath}" -vf "scale=${options.width || 1920}:${options.height || 1080}:force_original_aspect_ratio=decrease,pad=${options.width || 1920}:${options.height || 1080}:(ow-iw)/2:(oh-ih)/2,fps=24" -c:v libx264 -preset fast -crf 22 -c:a aac -ar 48000 -ac 2 "${standardizedPath}"`;
-        await execAsync(stdCmd);
-        
-        processedClips.push(standardizedPath);
+        if (clip.effect && !effectSet.has(clip.effect)) {
+          delete clip.effect;
+        }
+        if (clip.filter && !filterSet.has(clip.filter)) {
+          delete clip.filter;
+        }
+        if (clip.transition) {
+          if (clip.transition.in && !transitionSet.has(clip.transition.in)) {
+            delete clip.transition.in;
+          }
+          if (clip.transition.out && !transitionSet.has(clip.transition.out)) {
+            delete clip.transition.out;
+          }
+          if (!clip.transition.in && !clip.transition.out) {
+            delete clip.transition;
+          }
+        }
+      }
+      if (clips.length === 0) {
+        tracks.splice(t, 1);
+      }
+    }
+
+    return sanitized;
+  }
+
+  async compile(composition: any): Promise<string> {
+    composition = this.sanitize(composition);
+    if (!this.apiKey) {
+      throw new Error('Shotstack API key is required. Set it in config.shotstackApiKey or process.env.SHOTSTACK_API_KEY');
+    }
+
+    console.log('[ShotstackCompiler] Submitting render request...');
+    const response = await fetch(this.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey
+      },
+      body: JSON.stringify(composition)
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Shotstack API Error: ${response.status} ${err}`);
+    }
+
+    const data = await response.json();
+    const renderId = data.response.id;
+    console.log(`[ShotstackCompiler] Render ID: ${renderId}. Polling for completion...`);
+
+    return this.pollRenderStatus(renderId);
+  }
+
+  private async pollRenderStatus(renderId: string): Promise<string> {
+    const pollUrl = `${this.apiUrl}/${renderId}`;
+    
+    while (true) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const response = await fetch(pollUrl, {
+        headers: {
+          'x-api-key': this.apiKey
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to poll status: ${response.statusText}`);
       }
 
-      // Concat all standardized clips
-      console.log(`[LocalCompiler] Concatenating ${processedClips.length} clips...`);
-      const listPath = path.join(workDir, 'list.txt');
-      const listContent = processedClips.map(p => `file '${p}'`).join('\n');
-      fs.writeFileSync(listPath, listContent);
-
-      const concatCmd = `ffmpeg -y -f concat -safe 0 -i "${listPath}" -c copy "${outputPath}"`;
-      await execAsync(concatCmd);
-
-      console.log(`[LocalCompiler] Scene compiled successfully: ${outputPath}`);
-      return outputPath;
-
-    } finally {
-      // Cleanup
-      fs.rmSync(workDir, { recursive: true, force: true });
+      const data = await response.json();
+      const status = data.response.status;
+      
+      console.log(`[ShotstackCompiler] Status: ${status}`);
+      
+      if (status === 'done') {
+        return data.response.url;
+      } else if (status === 'failed') {
+        console.error('Shotstack failed details:', JSON.stringify(data, null, 2));
+        throw new Error(`Shotstack render failed: ${typeof data.response.error === 'object' ? JSON.stringify(data.response.error) : data.response.error}`);
+      }
     }
   }
 }

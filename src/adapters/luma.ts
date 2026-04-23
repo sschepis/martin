@@ -1,21 +1,30 @@
-import { Adapter, ProductionManifest, Shot } from '../types.ts';
+import { Adapter, ProductionManifest, Shot, ShotContext } from '../types.ts';
+import { resolveStyleGuards, appendNegative, resolveSubject, resolveEnvironmentDesc, resolveColorGrading, buildContextPrefix, resolveCameraMovement } from './prompt-utils.ts';
 
 export class LumaDreamMachineAdapter implements Adapter {
   name = 'luma';
 
-  generatePrompt(manifest: ProductionManifest, shot: Shot): string {
-    // Luma Dream Machine generates highly realistic motion when given visceral, descriptive language 
-    // that blends character action with camera physics.
-    
-    const cameraAction = shot.camera.movement.toLowerCase().includes('static') 
+  generatePrompt(manifest: ProductionManifest, shot: Shot, context?: ShotContext): string {
+    const movement = resolveCameraMovement(shot, context);
+    const cameraAction = movement.toLowerCase().includes('static')
       ? `The camera holds a steady, ${shot.camera.angle.toLowerCase()} angle`
-      : `The camera executes a fluid ${shot.camera.movement.toLowerCase()} from a ${shot.camera.angle.toLowerCase()} angle`;
+      : `The camera executes a fluid ${movement.toLowerCase()} from a ${shot.camera.angle.toLowerCase()} angle`;
 
-    return `Cinematic sequence: ${shot.description} ` +
-           `Focus on ${shot.subject || 'the main subject'} situated in ${shot.environment || 'the scene'}. ` +
+    const subject = resolveSubject(manifest, shot, context);
+    const environment = resolveEnvironmentDesc(manifest, shot);
+    const colorGrading = resolveColorGrading(manifest);
+    const contextPrefix = buildContextPrefix(manifest, shot, context);
+    const guards = resolveStyleGuards(manifest);
+    const guardsStr = guards.length > 0 ? `, ${guards.join(', ')}` : '';
+
+    let prompt = `${contextPrefix}Cinematic sequence: ${shot.description} ` +
+           `Focus on ${subject} situated in ${environment}. ` +
            `${cameraAction}, utilizing a ${shot.camera.lens || 'standard cinematic lens'}. ` +
            `The scene is illuminated by ${shot.lighting.style.toLowerCase()}, casting ${shot.lighting.contrast || 'natural'} contrast. ` +
-           `The visual tone is deeply ${manifest.mood.toLowerCase()}, dominated by ${manifest.colorPalette.join(', ')} color grading. ` +
+           `The visual tone is deeply ${manifest.mood.toLowerCase()}, dominated by ${colorGrading} color grading${guardsStr}. ` +
            `High fidelity, photorealistic textures, 4k resolution.`;
+
+    prompt = appendNegative(prompt, manifest, 'narrative');
+    return prompt;
   }
 }
