@@ -32,6 +32,7 @@ WERYAI_API_KEY=your_weryai_key
 # Required for Audio & Compositing
 ELEVENLABS_API_KEY=your_elevenlabs_key
 SHOTSTACK_API_KEY=your_shotstack_key
+PUBLIC_ASSET_URL=https://<your-ngrok-id>.ngrok-free.app # For local asset serving
 
 # Required for the LLM Director
 LMSTUDIO_URL=http://127.0.0.1:1234/v1  # Or use OpenAI URL

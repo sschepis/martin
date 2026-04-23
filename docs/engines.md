@@ -31,3 +31,20 @@ const finalVideoPath = await director.produce(manifest, {
   useImageToVideo: true
 });
 ```
+
+## Local Asset Serving
+
+When working with APIs that require publicly accessible asset URLs (like Shotstack for compiling or image-to-video engines that need a starting frame), Martin supports a local asset pipeline:
+
+1. **Local Audio Generation:** The `ElevenLabsEngine` downloads generated `.mp3` files locally to an `assets/` directory.
+2. **Public Routing:** Set `PUBLIC_ASSET_URL` in your environment (e.g., to an ngrok tunnel URL: `PUBLIC_ASSET_URL=https://<your-ngrok-id>.ngrok-free.app`). Martin will format the URL of the generated assets to route through your public tunnel.
+3. **Local Server:** You can run a simple HTTP server (e.g., `python -m http.server 8081`) to serve the `assets/` folder to the internet so remote compiling APIs can access them.
+
+## Engine Fallback Logic
+
+To prevent long production pipelines from crashing due to transient API failures or strict prompt safety filters, engines feature built-in fallback logic:
+
+- If a Video Engine API fails to create a task or polling times out, it gracefully logs the error and returns a predefined `FALLBACK_VIDEO_URL`.
+- If an Image Engine API fails (for `useReferenceImages: true`), it returns a predefined `FALLBACK_IMAGE_URL`.
+
+This ensures the pipeline completes its run, allowing you to preview the overall composition in Shotstack before selectively rerunning the failed shots.

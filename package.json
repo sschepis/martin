@@ -1,6 +1,6 @@
 {
   "name": "@sschepis/martin",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "An LLM-driven media director for AI video generation",
   "main": "dist/index.js",
